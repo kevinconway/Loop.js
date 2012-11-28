@@ -28,40 +28,29 @@
 
             });
 
-            describe('The forEach function', function () {
+            describe('The sequential module', function () {
 
                 it('returns a promise', function () {
 
-                    var d = loop.forEach([], function () {});
+                    var t = {"test": true},
+                        d = loop.sequential(function () {
+                            expect(t.test).to.be(true);
+                        });
 
                     expect(d.callback).to.be.ok();
                     expect(d.errback).to.be.ok();
 
                 });
 
-                it('resolves a promise on completion', function (done) {
+                it('runs async functions sequentially', function (done) {
 
-                    var d = loop.forEach([], function () {});
-
-                    d.callback(function (value) {
-
-                        done();
-
-                    });
-
-                    d.errback(function (err) {
-
-                        done();
-
-                    });
-
-                });
-
-                it('uses list values as input', function (done) {
-
-                    var d = loop.forEach(['test'], function (v) {
-                        expect(v).to.be('test');
-                    });
+                    var t = {"test": true},
+                        d = loop.sequential(function () {
+                            expect(t.test).to.be(true);
+                            t.test = false;
+                        }, function () {
+                            expect(t.test).to.be(false);
+                        });
 
                     d.callback(function (value) {
 
@@ -71,116 +60,174 @@
 
                     d.errback(function (err) {
 
+                        expect().fail(err);
                         done();
 
                     });
 
                 });
 
-            });
+                describe('The forEach function', function () {
 
-            describe('The forIn function', function () {
+                    it('returns a promise', function () {
 
-                it('returns a promise', function () {
+                        var d = loop.sequential.forEach([], function () {});
 
-                    var d = loop.forIn([], function () {});
-
-                    expect(d.callback).to.be.ok();
-                    expect(d.errback).to.be.ok();
-
-                });
-
-                it('resolves a promise on completion', function (done) {
-
-                    var d = loop.forIn([], function () {});
-
-                    d.callback(function (value) {
-
-                        done();
+                        expect(d.callback).to.be.ok();
+                        expect(d.errback).to.be.ok();
 
                     });
 
-                    d.errback(function (err) {
+                    it('resolves a promise on completion', function (done) {
 
-                        done();
+                        var d = loop.sequential.forEach([], function () {});
 
-                    });
+                        d.callback(function (value) {
 
-                });
+                            done();
 
-                it('uses object values as input', function (done) {
+                        });
 
-                    var d = loop.forEach([{ "test": true }], function (v) {
-                        expect(v.test).to.be(true);
-                    });
+                        d.errback(function (err) {
 
-                    d.callback(function (value) {
+                            expect().fail(err);
+                            done();
 
-                        done();
-
-                    });
-
-                    d.errback(function (err) {
-
-                        done();
+                        });
 
                     });
 
-                });
+                    it('uses list values as input', function (done) {
 
-            });
+                        var d = loop.sequential.forEach(['test'], function (v) {
+                            expect(v).to.be('test');
+                        });
 
-            describe('The chain function', function () {
+                        d.callback(function (value) {
 
-                it('returns a promise', function () {
+                            done();
 
-                    var d = loop.chain([]);
+                        });
 
-                    expect(d.callback).to.be.ok();
-                    expect(d.errback).to.be.ok();
+                        d.errback(function (err) {
 
-                });
+                            expect().fail(err);
+                            done();
 
-                it('resolves a promise on completion', function (done) {
-
-                    var d = loop.chain([]);
-
-                    d.callback(function (value) {
-
-                        done();
-
-                    });
-
-                    d.errback(function (err) {
-
-                        done();
+                        });
 
                     });
 
                 });
 
-                it('passes input from one function to the next', function (done) {
+                describe('The forIn function', function () {
 
-                    var d = loop.forEach(function (v) {
-                        return 'test';
-                    }, function (v) {
-                        expect(v).to.be('test');
-                        return 'test2';
-                    }, function (v) {
-                        expect(v).to.be('test2');
-                        return 'test3';
-                    });
+                    it('returns a promise', function () {
 
-                    d.callback(function (value) {
+                        var d = loop.sequential.forIn({}, function () {});
 
-                        expect(value).to.be('test3');
-                        done();
+                        expect(d.callback).to.be.ok();
+                        expect(d.errback).to.be.ok();
 
                     });
 
-                    d.errback(function (err) {
+                    it('resolves a promise on completion', function (done) {
 
-                        done();
+                        var d = loop.sequential.forIn({}, function () {});
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                    it('uses object values as input', function (done) {
+
+                        var d = loop.sequential.forIn([{ "test": true }], function (v) {
+                            expect(v.test).to.be(true);
+                        });
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                });
+
+                describe('The chain function', function () {
+
+                    it('returns a promise', function () {
+
+                        var d = loop.sequential.chain();
+
+                        expect(d.callback).to.be.ok();
+                        expect(d.errback).to.be.ok();
+
+                    });
+
+                    it('resolves a promise on completion', function (done) {
+
+                        var d = loop.sequential.chain();
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                    it('passes input from one function to the next', function (done) {
+
+                        var d = loop.sequential.chain(function (v) {
+                            return 'test';
+                        }, function (v) {
+                            expect(v).to.be('test');
+                            return 'test2';
+                        }, function (v) {
+                            expect(v).to.be('test2');
+                            return 'test3';
+                        });
+
+                        d.callback(function (value) {
+
+                            expect(value).to.be('test3');
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
 
                     });
 
