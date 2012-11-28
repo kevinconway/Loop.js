@@ -1,5 +1,5 @@
 ======================
-Flow.js Documentation
+Loop.js Documentation
 ======================
 
 .. contents::
@@ -19,13 +19,13 @@ Exports
 -------
 
 This module exports a single object. When required in a Node.js or AMD
-environment, the `flow` object will be the only value::
+environment, the `loop` object will be the only value::
 
-    var flow = require('flow');
+    var loop = require('loop');
 
-    typeof flow === "object"; // true
+    typeof loop === "object"; // true
 
-In vanilla, browser environments the `flow` function is injected into the
+In vanilla, browser environments the `loop` function is injected into the
 global namespace::
 
-    typeof flow === "object"; // true
+    typeof loop === "object"; // true
