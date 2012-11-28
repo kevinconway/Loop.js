@@ -54,6 +54,62 @@ SOFTWARE.
 
         }
 
+        function sequential() {
+
+            var args = Array.prototype.slice.call(arguments),
+                state = {
+                    "offset": 0,
+                    "size": args.length,
+                    "deferred": new Deferred()
+                };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve();
+                    return;
+
+                }
+
+                try {
+
+                    fnDeferred = args[state.offset]();
+
+                    if (fnDeferred &&
+                            fnDeferred.isInstance &&
+                            fnDeferred.isInstance(Deferred)) {
+
+                        fnDeferred.callback(next);
+                        fnDeferred.errback(function (err) {
+                            state.deferred.fail(err);
+                            state.offset = state.size;
+                        });
+
+                        return;
+
+                    }
+
+                    state.offset = state.offset + 1;
+                    defer(next);
+
+                } catch (e) {
+
+                    state.deferred.fail(e);
+                    state.offset = state.size;
+                    return;
+
+                }
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
         /*
             Given a list of things and some action, this function will apply
             the action to each item in the list.
@@ -229,13 +285,14 @@ SOFTWARE.
             will wait for that Deferred to be resolved for failed before
             continuing on.
         */
-        function chain(list) {
+        function chain() {
 
-            var state = {
-                "offset": 0,
-                "size": list.length,
-                "deferred": new Deferred()
-            };
+            var list = Array.prototype.slice.call(arguments),
+                state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "deferred": new Deferred()
+                };
 
             function next(value) {
 
@@ -243,7 +300,7 @@ SOFTWARE.
 
                 if (state.offset > (state.size - 1)) {
 
-                    state.deferred.resolve();
+                    state.deferred.resolve(value);
                     return;
 
                 }
@@ -284,11 +341,13 @@ SOFTWARE.
 
         }
 
+        sequential.forEach = forEach;
+        sequential.forIn = forIn;
+        sequential.chain = chain;
+
         return {
             "apply": apply,
-            "forEach": forEach,
-            "forIn": forIn,
-            "chain": chain
+            "sequential": sequential
         };
 
     });
