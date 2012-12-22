@@ -22,28 +22,37 @@ Loop is still in early development.
 
 Currently supported loops are:
 
--   forEach(list, fn)
+-   sequential(fn, fn, fn, ...)
 
-    Perform fn for each item in the list.
+    Perform each function given in order. Each function runs after the
+    previous has completed. If a function returns a deferred the loop will
+    wait until that deferred is resolved before continuing.
 
--   forIn(obj, fn)
+    -   forEach(list, fn)
 
-    Perform fn for each native property in the object.
+        Perform `fn` for each item in the list. If `fn` returns a deferred
+        then the loop waits for the deferred to resolve before continuing.
 
--   chain(fnList)
+    -   forIn(obj, fn)
 
-    Perform each function in fnList where each function receives the input
-    of the function that ran just before it.
+        Perform `fn` for each native property in the object. This loop
+        utilizes a filtered for-in loop. If `fn` returns a deferred then the
+        loop will wait until that deferred is resolved before continuing.
 
-The above loops still maintain the sequential nature of synchronous loops.
-That is, they process elements in order and only one at a time. This is useful
-when the development need to to preserve order of execution or when the goal
-is to convert a long running for loop into something that fits better with
-the JavaScript concurrency model.
+    -   chain(fn, fn, fn, ...)
+
+        Perform each function in the list where each function receives the
+        input of the function that ran just before it. The first function in
+        the list is run without input. If any function in the list returns a
+        deferred then the loop will wait for that deferred to resolve before
+        continuing. The value resolved by the deferred will be passed in as
+        input to the next function. The value returned by the last function
+        will be the value used to resolve the deferred returned by a call to
+        this function.
 
 Still to come are similar looping functions that fan out. That is, they queue
 up all functions for all items in the list at the same time. These functions
-would be primarily for developers who need to lunch a sequence of functions
+would be primarily for developers who need to lunch a series of functions
 that all leverage some form of non-blocking IO.
 
 Show Me
@@ -65,21 +74,66 @@ RequireJS.
 Node.js
 -------
 
-This package can be loaded using `require()` just like any other in Node.js.
+This package is published through NPM under the name `loopjs` and can be
+installed with::
+
+    $ npm install loopjs
+
+This should automatically install all dependencies (deferjs and deferredjs).
+
+This package can then be loaded with `require('loopjs')`.
 
 Browser (<script>)
 ------------------
 
 Developers working with a normal browser environment can use regular script
-tags to load the package. Defer loads into a global `loop` object.
+tags to load the package. This package has dependencies on these other
+packages:
 
+-   `Modelo <https://github.com/kevinconway/Modelo.js>`_
+
+-   `Defer <https://github.com/kevinconway/Defer.js>`_
+
+-   `Event <https://github.com/kevinconway/Event.js>`_
+
+-   `Deferred <https://github.com/kevinconway/Deferred.js>`_
+
+The load order should be something like this::
+
+    <script src="modelo.js"></script>
+    <script src="defer.js"></script>
+    <script src="event.js"></script>
+    <script src="deferred.js"></script>
     <script src="loop.js"></script>
+
+The package loads into a global variable named `Loop`.
 
 Browser (AMD)
 -------------
 
-Developers working with an AMD loader like RequireJS can add Loop as though
-it were normal dependencies.
+Developers working with RequireJS can also load this package with `require()`.
+
+One thing to note, however, is that this package has its own dependencies that
+must also be available through `require()`. Developers with NPM installed can
+make use of the pre-configured dependency options by doing the following::
+
+    $ npm install deferredjs
+    $ cd node_modules/deferredjs/node_modules/eventjs
+    $ npm install
+    $ cd ../../../eventjs
+    $ npm install
+
+Now when you reference `loopjs` as a dependency it should properly load
+its own dependencies.
+
+If you require something more specific then you can edit the dependency options
+for this package by looking for the following line 33 which should be::
+
+    amd: ['./node_modules/deferjs/defer.js',
+            './node_modules/deferredjs/deferred.js'],
+
+Simply change these paths to match where you have placed the corresponding
+files.
 
 License
 =======
