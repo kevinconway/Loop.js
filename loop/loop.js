@@ -110,240 +110,244 @@ SOFTWARE.
 
         }
 
-        /*
-            Given a list of things and some action, this function will apply
-            the action to each item in the list.
+        (function (sequential) {
 
-            This function returns a Deferred object.
+            /*
+                Given a list of things and some action, this function will apply
+                the action to each item in the list.
 
-            If any item in the list causes the given action to throw an
-            exception, the Deferred object will be failed with the same
-            error that caused the initial exception. Only the first exception
-            will be thrown. Once an error is thrown the loop stops and no more
-            items are processed.
+                This function returns a Deferred object.
 
-            If the action given to this function returns a Deferred object
-            then the loop will wait until that deferred has been resolved
-            before continuing on.
-        */
-        function forEach(list, fn) {
+                If any item in the list causes the given action to throw an
+                exception, the Deferred object will be failed with the same
+                error that caused the initial exception. Only the first exception
+                will be thrown. Once an error is thrown the loop stops and no more
+                items are processed.
 
-            var state = {
-                "offset": 0,
-                "size": list.length,
-                "deferred": new Deferred()
-            };
+                If the action given to this function returns a Deferred object
+                then the loop will wait until that deferred has been resolved
+                before continuing on.
+            */
+            function forEach(list, fn) {
 
-            function next() {
-
-                var fnDeferred;
-
-                if (state.offset > (state.size - 1)) {
-
-                    state.deferred.resolve();
-                    return;
-
-                }
-
-                try {
-
-                    fnDeferred = fn(list[state.offset]);
-
-                    if (fnDeferred &&
-                            fnDeferred.isInstance &&
-                            fnDeferred.isInstance(Deferred)) {
-
-                        fnDeferred.callback(next);
-                        fnDeferred.errback(function (err) {
-                            state.deferred.fail(err);
-                            state.offset = state.size;
-                        });
-
-                        return;
-
-                    }
-
-                    state.offset = state.offset + 1;
-                    defer(next);
-
-                } catch (e) {
-
-                    state.deferred.fail(e);
-                    state.offset = state.size;
-                    return;
-
-                }
-
-            }
-
-            defer(next);
-            return state.deferred.promise();
-
-        }
-
-        /*
-            Given some object and some action, this function will perform
-            the action on each property of the object.
-
-            Properties of the object a enumerated using a for in loop that is
-            filtered by hasOwnProperty.
-
-            This function returns a Deferred object.
-
-            If the given action throws an exception at any point during the
-            loop, the Deferred object will be failed with the same error that
-            was thrown. Only the first exception will be detected. Once an
-            exception is thrown the loop stops and no more items are
-            processed.
-
-            If the given action returns a Deferred object then the loop will
-            wait until that Deferred has been resolved or failed before
-            continuing on in the loop.
-        */
-        function forIn(obj, fn) {
-
-            var state = {
-                "keys": [],
-                "offset": 0,
-                "size": 0,
-                "deferred": new Deferred()
-            },
-                key;
-
-            for (key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    state.keys.push(key);
-                }
-            }
-
-            state.size = state.keys.length;
-
-            function next() {
-
-                var fnDeferred;
-
-                if (state.offset > (state.size - 1)) {
-
-                    state.deferred.resolve();
-                    return;
-
-                }
-
-                try {
-
-                    fnDeferred = fn(obj[state.keys[state.offset]]);
-
-                    if (fnDeferred &&
-                            fnDeferred.isInstance &&
-                            fnDeferred.isInstance(Deferred)) {
-
-                        fnDeferred.callback(next);
-                        fnDeferred.errback(function (err) {
-                            state.deferred.fail(err);
-                            state.offset = state.size;
-                        });
-
-                        return;
-
-                    }
-
-                    state.offset = state.offset + 1;
-                    defer(next);
-
-                } catch (e) {
-
-                    state.deferred.fail(e);
-                    state.offset = state.size;
-                    return;
-
-                }
-
-            }
-
-            defer(next);
-            return state.deferred.promise();
-
-        }
-
-        /*
-            This function processes a series of functions such that the
-            output of the first function is passed as input to the second
-            function and so on.
-
-            The first function recieves no input.
-
-            This function returns a Deferred object.
-
-            If any of the functions given throw an exception then the
-            Deferred object is failed with that exception. Once an exception
-            is thrown the loop stops and no more items are processed.
-
-            Once the final function has been processed, the Deferred will be
-            resolved with the output of the final functin.
-
-            If any of the functions return Deferred objects then the loop
-            will wait for that Deferred to be resolved for failed before
-            continuing on.
-        */
-        function chain() {
-
-            var list = Array.prototype.slice.call(arguments),
-                state = {
+                var state = {
                     "offset": 0,
                     "size": list.length,
                     "deferred": new Deferred()
                 };
 
-            function next(value) {
+                function next() {
 
-                var fnValue;
+                    var fnDeferred;
 
-                if (state.offset > (state.size - 1)) {
+                    if (state.offset > (state.size - 1)) {
 
-                    state.deferred.resolve(value);
-                    return;
-
-                }
-
-                try {
-
-                    fnValue = list[state.offset](value);
-
-                    if (fnValue &&
-                            fnValue.isInstance &&
-                            fnValue.isInstance(Deferred)) {
-
-                        fnValue.callback(next);
-                        fnValue.errback(function (err) {
-                            state.deferred.fail(err);
-                            state.offset = state.size;
-                        });
-
+                        state.deferred.resolve();
                         return;
 
                     }
 
-                    state.offset = state.offset + 1;
-                    defer(apply(next, fnValue));
+                    try {
 
-                } catch (e) {
+                        fnDeferred = fn(list[state.offset]);
 
-                    state.deferred.fail(e);
-                    state.offset = state.size;
-                    return;
+                        if (fnDeferred &&
+                                fnDeferred.isInstance &&
+                                fnDeferred.isInstance(Deferred)) {
+
+                            fnDeferred.callback(next);
+                            fnDeferred.errback(function (err) {
+                                state.deferred.fail(err);
+                                state.offset = state.size;
+                            });
+
+                            return;
+
+                        }
+
+                        state.offset = state.offset + 1;
+                        defer(next);
+
+                    } catch (e) {
+
+                        state.deferred.fail(e);
+                        state.offset = state.size;
+                        return;
+
+                    }
 
                 }
 
+                defer(next);
+                return state.deferred.promise();
+
             }
 
-            defer(next);
-            return state.deferred.promise();
+            /*
+                Given some object and some action, this function will perform
+                the action on each property of the object.
 
-        }
+                Properties of the object a enumerated using a for in loop that is
+                filtered by hasOwnProperty.
 
-        sequential.forEach = forEach;
-        sequential.forIn = forIn;
-        sequential.chain = chain;
+                This function returns a Deferred object.
+
+                If the given action throws an exception at any point during the
+                loop, the Deferred object will be failed with the same error that
+                was thrown. Only the first exception will be detected. Once an
+                exception is thrown the loop stops and no more items are
+                processed.
+
+                If the given action returns a Deferred object then the loop will
+                wait until that Deferred has been resolved or failed before
+                continuing on in the loop.
+            */
+            function forIn(obj, fn) {
+
+                var state = {
+                    "keys": [],
+                    "offset": 0,
+                    "size": 0,
+                    "deferred": new Deferred()
+                },
+                    key;
+
+                for (key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        state.keys.push(key);
+                    }
+                }
+
+                state.size = state.keys.length;
+
+                function next() {
+
+                    var fnDeferred;
+
+                    if (state.offset > (state.size - 1)) {
+
+                        state.deferred.resolve();
+                        return;
+
+                    }
+
+                    try {
+
+                        fnDeferred = fn(obj[state.keys[state.offset]]);
+
+                        if (fnDeferred &&
+                                fnDeferred.isInstance &&
+                                fnDeferred.isInstance(Deferred)) {
+
+                            fnDeferred.callback(next);
+                            fnDeferred.errback(function (err) {
+                                state.deferred.fail(err);
+                                state.offset = state.size;
+                            });
+
+                            return;
+
+                        }
+
+                        state.offset = state.offset + 1;
+                        defer(next);
+
+                    } catch (e) {
+
+                        state.deferred.fail(e);
+                        state.offset = state.size;
+                        return;
+
+                    }
+
+                }
+
+                defer(next);
+                return state.deferred.promise();
+
+            }
+
+            /*
+                This function processes a series of functions such that the
+                output of the first function is passed as input to the second
+                function and so on.
+
+                The first function recieves no input.
+
+                This function returns a Deferred object.
+
+                If any of the functions given throw an exception then the
+                Deferred object is failed with that exception. Once an exception
+                is thrown the loop stops and no more items are processed.
+
+                Once the final function has been processed, the Deferred will be
+                resolved with the output of the final functin.
+
+                If any of the functions return Deferred objects then the loop
+                will wait for that Deferred to be resolved for failed before
+                continuing on.
+            */
+            function chain() {
+
+                var list = Array.prototype.slice.call(arguments),
+                    state = {
+                        "offset": 0,
+                        "size": list.length,
+                        "deferred": new Deferred()
+                    };
+
+                function next(value) {
+
+                    var fnValue;
+
+                    if (state.offset > (state.size - 1)) {
+
+                        state.deferred.resolve(value);
+                        return;
+
+                    }
+
+                    try {
+
+                        fnValue = list[state.offset](value);
+
+                        if (fnValue &&
+                                fnValue.isInstance &&
+                                fnValue.isInstance(Deferred)) {
+
+                            fnValue.callback(next);
+                            fnValue.errback(function (err) {
+                                state.deferred.fail(err);
+                                state.offset = state.size;
+                            });
+
+                            return;
+
+                        }
+
+                        state.offset = state.offset + 1;
+                        defer(apply(next, fnValue));
+
+                    } catch (e) {
+
+                        state.deferred.fail(e);
+                        state.offset = state.size;
+                        return;
+
+                    }
+
+                }
+
+                defer(next);
+                return state.deferred.promise();
+
+            }
+
+            sequential.forEach = forEach;
+            sequential.forIn = forIn;
+            sequential.chain = chain;
+
+        }(sequential));
 
         return {
             "apply": apply,
