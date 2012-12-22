@@ -235,6 +235,30 @@
 
             });
 
+            describe("The fan module", function () {
+
+                it('returns a promise', function (done) {
+
+                    var t = {"test": true},
+                        d = loop.fan(function () {
+                            expect(t.test).to.be(true);
+                        });
+
+                    expect(d.callback).to.be.ok();
+                    expect(d.errback).to.be.ok();
+
+                    d.callback(function (value) {
+                        done();
+                    });
+
+                    d.errback(function (err) {
+                        expect().fail(err);
+                    });
+
+                });
+
+            });
+
         });
 
     });

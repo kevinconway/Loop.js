@@ -349,9 +349,75 @@ SOFTWARE.
 
         }(sequential));
 
+        function fan() {
+
+            var args = Array.prototype.slice.call(arguments),
+                state = {
+                    "offset": 0,
+                    "size": args.length,
+                    "deferred": new Deferred()
+                },
+                x;
+
+            function complete() {
+
+                state.offset = state.offset + 1;
+
+                if (state.offset >= state.size) {
+
+                    state.deferred.resolve();
+
+                }
+
+            }
+
+            function next(fn) {
+
+                var fnValue;
+
+                try {
+
+                    fnValue = fn();
+
+                    if (fnValue &&
+                            fnValue.isInstance &&
+                            fnValue.isInstance(Deferred)) {
+
+                        fnValue.callback(complete);
+                        fnValue.errback(function (err) {
+                            state.deferred.fail(err);
+                            state.offset = state.size;
+                        });
+
+                        return;
+
+                    }
+
+                    complete();
+
+                } catch (e) {
+
+                    state.deferred.fail(e);
+                    state.offset = state.size;
+
+                }
+
+            }
+
+            for (x = 0; x < state.size; x = x + 1) {
+
+                defer(apply(next, args[x]));
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
         return {
             "apply": apply,
-            "sequential": sequential
+            "sequential": sequential,
+            "fan": fan
         };
 
     });
