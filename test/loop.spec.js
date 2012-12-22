@@ -1,7 +1,7 @@
 /*global require, define, module, describe, it, xit
 
 */
-(function (factory) {
+(function (ctx, factory) {
     "use strict";
 
     var env = factory.env,
@@ -12,7 +12,7 @@
             browser: ['expect', 'loop']
         };
 
-    def.call(this, 'spec/loop', deps[env], function (expect, loop) {
+    def.call(ctx, 'spec/loop', deps[env], function (expect, loop) {
 
         describe('The Loop library', function () {
 
@@ -239,7 +239,7 @@
 
     });
 
-}.call(this, (function () {
+}(this, (function (ctx) {
     "use strict";
 
     var currentEnvironment,
@@ -256,7 +256,7 @@
 
         currentEnvironment = 'node';
 
-    } else if (this.window !== undefined) {
+    } else if (ctx.window !== undefined) {
 
         currentEnvironment = 'browser';
 
@@ -339,7 +339,7 @@
 
         }
 
-    }.call());
+    }());
 
 
     return {
@@ -347,4 +347,4 @@
         def: generator
     };
 
-}.call(this))));
+}(this))));
