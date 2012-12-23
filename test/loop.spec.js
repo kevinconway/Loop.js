@@ -454,6 +454,93 @@
 
                 });
 
+                describe('The map function', function () {
+
+                    it('returns a promise', function () {
+
+                        var d = loop.fan.map([], function () {});
+
+                        expect(d.callback).to.be.ok();
+                        expect(d.errback).to.be.ok();
+
+                    });
+
+                    it('resolves a promise on completion', function (done) {
+
+                        var d = loop.fan.map([], function () {});
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                    it('uses list values as input', function (done) {
+
+                        var d = loop.fan.map(['test', 'test'],
+                                function (v) {
+                                    expect(v).to.be('test');
+                                    return v;
+                                });
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                    it('produces a new list', function (done) {
+
+                        var d = loop.fan.map([1, 2, 3, 4, 5],
+                                function (v) {
+                                    return v * 2;
+                                });
+
+                        d.callback(function (value) {
+
+                            var x;
+
+                            expect(value.length).to.be.ok();
+
+                            expect(value[0]).to.be(2);
+                            expect(value[1]).to.be(4);
+                            expect(value[2]).to.be(6);
+                            expect(value[3]).to.be(8);
+                            expect(value[4]).to.be(10);
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                });
+
             });
 
         });

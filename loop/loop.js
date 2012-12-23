@@ -628,8 +628,92 @@ SOFTWARE.
 
             }
 
+            function map(list, fn) {
+
+                var state = {
+                    "complete": 0,
+                    "size": list.length,
+                    "list": [],
+                    "deferred": new Deferred()
+                },
+                    x;
+
+                if (state.size < 1) {
+
+                    state.deferred.resolve([]);
+
+                }
+
+                function complete() {
+
+                    state.complete = state.complete + 1;
+
+                    if (state.complete >= state.size) {
+
+                        state.deferred.resolve(state.list);
+
+                    }
+
+                }
+
+                function next(offset) {
+
+                    var fnValue;
+
+                    if (state.offset > (state.size - 1)) {
+
+                        state.deferred.resolve(state.list);
+                        return;
+
+                    }
+
+                    try {
+
+                        fnValue = fn(list[offset]);
+
+                        if (fnValue &&
+                                fnValue.isInstance &&
+                                fnValue.isInstance(Deferred)) {
+
+                            fnValue.callback(function (val) {
+                                state.list[offset] = val;
+                                complete();
+                            });
+                            fnValue.errback(function (err) {
+                                state.deferred.fail(err);
+                                state.complete = state.size;
+                            });
+
+                            return;
+
+                        }
+
+                        state.list[offset] = fnValue;
+                        complete();
+
+                    } catch (e) {
+
+                        state.deferred.fail(e);
+                        state.offset = state.size;
+                        return;
+
+                    }
+
+                }
+
+                for (x = 0; x < state.size; x = x + 1) {
+
+                    defer(apply(next, x));
+
+                }
+
+                return state.deferred.promise();
+
+            }
+
             fan.forEach = forEach;
             fan.forIn = forIn;
+            fan.map = map;
 
         }(fan));
 
