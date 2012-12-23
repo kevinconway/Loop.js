@@ -95,14 +95,14 @@ Show Me
             }
 
         },
-        dseq,
-        dfan;
+        sequentialDeferred,
+        fanDeferred;
 
-    dseq = loop.sequential.map(list, fn);
-    dfan = loop.fan.map(list, fn);
+    sequentialDeferred = loop.sequential.map(list, fn);
+    fanDeferred = loop.fan.map(list, fn);
 
-    dseq.callback(logResults);
-    dfan.callback(logResults);
+    sequentialDeferred.callback(logResults);
+    fanDeferred.callback(logResults);
 
 Setup Instructions
 ==================
