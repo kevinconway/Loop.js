@@ -425,6 +425,12 @@ SOFTWARE.
                     },
                     x;
 
+                if (state.size < 1) {
+
+                    state.deferred.resolve();
+
+                }
+
                 function complete() {
 
                     state.offset = state.offset + 1;
@@ -499,6 +505,12 @@ SOFTWARE.
 
                 state.size = state.keys.length;
 
+                if (state.size < 1) {
+
+                    state.deferred.resolve();
+
+                }
+
                 function complete() {
 
                     state.offset = state.offset + 1;
@@ -553,6 +565,9 @@ SOFTWARE.
                 return state.deferred.promise();
 
             }
+
+            fan.forEach = forEach;
+            fan.forIn = forIn;
 
         }(fan));
 
