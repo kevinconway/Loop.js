@@ -257,6 +257,116 @@
 
                 });
 
+                describe('The forEach function', function () {
+
+                    it('returns a promise', function () {
+
+                        var d = loop.sequential.forEach([], function () {});
+
+                        expect(d.callback).to.be.ok();
+                        expect(d.errback).to.be.ok();
+
+                    });
+
+                    it('resolves a promise on completion', function (done) {
+
+                        var d = loop.sequential.forEach([], function () {});
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                    it('uses list values as input', function (done) {
+
+                        var d = loop.sequential.forEach(['test', 'test'],
+                                function (v) {
+                                    expect(v).to.be('test');
+                                });
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                });
+
+                describe('The forIn function', function () {
+
+                    it('returns a promise', function () {
+
+                        var d = loop.sequential.forIn({}, function () {});
+
+                        expect(d.callback).to.be.ok();
+                        expect(d.errback).to.be.ok();
+
+                    });
+
+                    it('resolves a promise on completion', function (done) {
+
+                        var d = loop.sequential.forIn({}, function () {});
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                    it('uses object values as input', function (done) {
+
+                        var d = loop.sequential.forIn([
+                                { "test": true }, { "test": true }
+                            ],
+                                function (v) {
+                                    expect(v.test).to.be(true);
+                                });
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                });
+
             });
 
         });

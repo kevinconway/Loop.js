@@ -414,6 +414,148 @@ SOFTWARE.
 
         }
 
+        (function (fan) {
+
+            function forEach(list, fn) {
+
+                var state = {
+                        "offset": 0,
+                        "size": list.length,
+                        "deferred": new Deferred()
+                    },
+                    x;
+
+                function complete() {
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve();
+
+                    }
+
+                }
+
+                function next(val) {
+
+                    var fnValue;
+
+                    try {
+
+                        fnValue = fn(val);
+
+                        if (fnValue &&
+                                fnValue.isInstance &&
+                                fnValue.isInstance(Deferred)) {
+
+                            fnValue.callback(complete);
+                            fnValue.errback(function (err) {
+                                state.deferred.fail(err);
+                                state.offset = state.size;
+                            });
+
+                            return;
+
+                        }
+
+                        complete();
+
+                    } catch (e) {
+
+                        state.deferred.fail(e);
+                        state.offset = state.size;
+
+                    }
+
+                }
+
+                for (x = 0; x < state.size; x = x + 1) {
+
+                    defer(apply(next, list[x]));
+
+                }
+
+                return state.deferred.promise();
+
+            }
+
+            function forIn(obj, fn) {
+
+                var state = {
+                    "keys": [],
+                    "offset": 0,
+                    "size": 0,
+                    "deferred": new Deferred()
+                },
+                    key,
+                    x;
+
+                for (key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        state.keys.push(key);
+                    }
+                }
+
+                state.size = state.keys.length;
+
+                function complete() {
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve();
+
+                    }
+
+                }
+
+                function next(key) {
+
+                    var fnValue;
+
+                    try {
+
+                        fnValue = fn(obj[key]);
+
+                        if (fnValue &&
+                                fnValue.isInstance &&
+                                fnValue.isInstance(Deferred)) {
+
+                            fnValue.callback(complete);
+                            fnValue.errback(function (err) {
+                                state.deferred.fail(err);
+                                state.offset = state.size;
+                            });
+
+                            return;
+
+                        }
+
+                        complete();
+
+                    } catch (e) {
+
+                        state.deferred.fail(e);
+                        state.offset = state.size;
+
+                    }
+
+                }
+
+                for (x = 0; x < state.size; x = x + 1) {
+
+                    defer(apply(next, state.keys[x]));
+
+                }
+
+                return state.deferred.promise();
+
+            }
+
+        }(fan));
+
         return {
             "apply": apply,
             "sequential": sequential,
