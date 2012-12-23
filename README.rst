@@ -50,15 +50,59 @@ Currently supported loops are:
         will be the value used to resolve the deferred returned by a call to
         this function.
 
-Still to come are similar looping functions that fan out. That is, they queue
-up all functions for all items in the list at the same time. These functions
-would be primarily for developers who need to lunch a series of functions
-that all leverage some form of non-blocking IO.
+    -   map(list, fn)
+
+        Perform `fn` on each item in `list` and produce a new list containing
+        the value produced by `fn`.
+
+-   fan(fn, fn, fn, ...)
+
+    Defer all given functions at the same time. Execution and completion order
+    are not guaranteed. This method, and its submodules, are only
+    particularly useful if the given functions are leveraging some form of
+    non-blocking behaviour.
+
+    -   forEach(list, fn)
+
+        Perform `fn` for each item in the list.
+
+    -   forIn(obj, fn)
+
+        Perform `fn` for each native property in the object. This loop
+        utilizes a filtered for-in loop.
+
+    -   map(list, fn)
+
+        Perform `fn` on each item in `list` and produce a new list containing
+        the value produced by `fn`.
 
 Show Me
 =======
 
-*Examples pending.*
+::
+
+    var list = [1, 2, 3, 4, 5],
+        fn = function (value) {
+
+            return value * 2;
+        },
+        logResults = function (values) {
+
+            var x;
+
+            for (x = 0; x < values.length; x = x + 1) {
+                console.log(values[x]);
+            }
+
+        },
+        dseq,
+        dfan;
+
+    dseq = loop.sequential.map(list, fn);
+    dfan = loop.fan.map(list, fn);
+
+    dseq.callback(logResults);
+    dfan.callback(logResults);
 
 Setup Instructions
 ==================
