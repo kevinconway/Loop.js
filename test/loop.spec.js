@@ -261,7 +261,7 @@
 
                     it('returns a promise', function () {
 
-                        var d = loop.sequential.forEach([], function () {});
+                        var d = loop.fan.forEach([], function () {});
 
                         expect(d.callback).to.be.ok();
                         expect(d.errback).to.be.ok();
@@ -270,7 +270,7 @@
 
                     it('resolves a promise on completion', function (done) {
 
-                        var d = loop.sequential.forEach([], function () {});
+                        var d = loop.fan.forEach([], function () {});
 
                         d.callback(function (value) {
 
@@ -289,7 +289,7 @@
 
                     it('uses list values as input', function (done) {
 
-                        var d = loop.sequential.forEach(['test', 'test'],
+                        var d = loop.fan.forEach(['test', 'test'],
                                 function (v) {
                                     expect(v).to.be('test');
                                 });
@@ -315,7 +315,7 @@
 
                     it('returns a promise', function () {
 
-                        var d = loop.sequential.forIn({}, function () {});
+                        var d = loop.fan.forIn({}, function () {});
 
                         expect(d.callback).to.be.ok();
                         expect(d.errback).to.be.ok();
@@ -324,7 +324,7 @@
 
                     it('resolves a promise on completion', function (done) {
 
-                        var d = loop.sequential.forIn({}, function () {});
+                        var d = loop.fan.forIn({}, function () {});
 
                         d.callback(function (value) {
 
@@ -343,7 +343,7 @@
 
                     it('uses object values as input', function (done) {
 
-                        var d = loop.sequential.forIn([
+                        var d = loop.fan.forIn([
                                 { "test": true }, { "test": true }
                             ],
                                 function (v) {
