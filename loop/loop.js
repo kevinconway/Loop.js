@@ -343,9 +343,71 @@ SOFTWARE.
 
             }
 
+            function map(list, fn) {
+
+                var state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "list": [],
+                    "deferred": new Deferred()
+                };
+
+                function next() {
+
+                    var fnDeferred;
+
+                    if (state.offset > (state.size - 1)) {
+
+                        state.deferred.resolve(state.list);
+                        return;
+
+                    }
+
+                    try {
+
+                        fnDeferred = fn(list[state.offset]);
+
+                        if (fnDeferred &&
+                                fnDeferred.isInstance &&
+                                fnDeferred.isInstance(Deferred)) {
+
+                            fnDeferred.callback(function (val) {
+                                state.list[state.offset] = val;
+                                state.offset = state.offset + 1;
+                                defer(next);
+                            });
+                            fnDeferred.errback(function (err) {
+                                state.deferred.fail(err);
+                                state.offset = state.size;
+                            });
+
+                            return;
+
+                        }
+
+                        state.list[state.offset] = fnDeferred;
+                        state.offset = state.offset + 1;
+                        defer(next);
+
+                    } catch (e) {
+
+                        state.deferred.fail(e);
+                        state.offset = state.size;
+                        return;
+
+                    }
+
+                }
+
+                defer(next);
+                return state.deferred.promise();
+
+            }
+
             sequential.forEach = forEach;
             sequential.forIn = forIn;
             sequential.chain = chain;
+            sequential.map = map;
 
         }(sequential));
 
