@@ -79,8 +79,8 @@ SOFTWARE.
                     fnDeferred = args[state.offset]();
 
                     if (fnDeferred &&
-                            fnDeferred.isInstance &&
-                            fnDeferred.isInstance(Deferred)) {
+                            fnDeferred.callback &&
+                            fnDeferred.errback) {
 
                         fnDeferred.callback(next);
                         fnDeferred.errback(function (err) {
@@ -152,8 +152,8 @@ SOFTWARE.
                         fnDeferred = fn(list[state.offset]);
 
                         if (fnDeferred &&
-                                fnDeferred.isInstance &&
-                                fnDeferred.isInstance(Deferred)) {
+                                fnDeferred.callback &&
+                                fnDeferred.errback) {
 
                             fnDeferred.callback(next);
                             fnDeferred.errback(function (err) {
@@ -236,8 +236,8 @@ SOFTWARE.
                         fnDeferred = fn(obj[state.keys[state.offset]]);
 
                         if (fnDeferred &&
-                                fnDeferred.isInstance &&
-                                fnDeferred.isInstance(Deferred)) {
+                                fnDeferred.callback &&
+                                fnDeferred.errback) {
 
                             fnDeferred.callback(next);
                             fnDeferred.errback(function (err) {
@@ -312,8 +312,8 @@ SOFTWARE.
                         fnValue = list[state.offset](value);
 
                         if (fnValue &&
-                                fnValue.isInstance &&
-                                fnValue.isInstance(Deferred)) {
+                                fnValue.callback &&
+                                fnValue.errback) {
 
                             fnValue.callback(next);
                             fnValue.errback(function (err) {
@@ -368,8 +368,8 @@ SOFTWARE.
                         fnDeferred = fn(list[state.offset]);
 
                         if (fnDeferred &&
-                                fnDeferred.isInstance &&
-                                fnDeferred.isInstance(Deferred)) {
+                                fnDeferred.callback &&
+                                fnDeferred.errback) {
 
                             fnDeferred.callback(function (val) {
                                 state.list[state.offset] = val;
@@ -442,8 +442,8 @@ SOFTWARE.
                     fnValue = fn();
 
                     if (fnValue &&
-                            fnValue.isInstance &&
-                            fnValue.isInstance(Deferred)) {
+                            fnValue.callback &&
+                            fnValue.errback) {
 
                         fnValue.callback(complete);
                         fnValue.errback(function (err) {
@@ -514,8 +514,8 @@ SOFTWARE.
                         fnValue = fn(val);
 
                         if (fnValue &&
-                                fnValue.isInstance &&
-                                fnValue.isInstance(Deferred)) {
+                                fnValue.callback &&
+                                fnValue.errback) {
 
                             fnValue.callback(complete);
                             fnValue.errback(function (err) {
@@ -594,8 +594,8 @@ SOFTWARE.
                         fnValue = fn(obj[key]);
 
                         if (fnValue &&
-                                fnValue.isInstance &&
-                                fnValue.isInstance(Deferred)) {
+                                fnValue.callback &&
+                                fnValue.errback) {
 
                             fnValue.callback(complete);
                             fnValue.errback(function (err) {
@@ -672,8 +672,8 @@ SOFTWARE.
                         fnValue = fn(list[offset]);
 
                         if (fnValue &&
-                                fnValue.isInstance &&
-                                fnValue.isInstance(Deferred)) {
+                                fnValue.callback &&
+                                fnValue.errback) {
 
                             fnValue.callback(function (val) {
                                 state.list[offset] = val;
