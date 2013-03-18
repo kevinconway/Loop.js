@@ -1,6 +1,6 @@
 /*
 The MIT License (MIT)
-Copyright (c) 2012 Kevin Conway
+Copyright (c) 2013 Kevin Conway
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -38,7 +38,7 @@ SOFTWARE.
     def.call(ctx, 'loop', deps[env], function (defer, Deferred) {
 
         /*
-            This is a helper function to easy the process of binding
+            This is a helper function to ease the process of binding
             deferred functions to their parameters.
         */
         function apply() {
@@ -54,6 +54,22 @@ SOFTWARE.
 
         }
 
+        /*
+            Given any number of functions to run this method will execute each
+            of these functions in sequence.
+
+            This function returns a Deferred object.
+
+            If any function causes throws an exception then the Deferred is
+            failed with that exception and the loop terminates.
+
+            On completion of all function the Deferred is resolved, but with no
+            associated value.
+
+            If any function in the sequence returns a Deferred then the loop
+            will wait for that Deferred to resolve or fail before continuing
+            on to the next function.
+        */
         function sequential() {
 
             var args = Array.prototype.slice.call(arguments),
@@ -120,9 +136,9 @@ SOFTWARE.
 
                 If any item in the list causes the given action to throw an
                 exception, the Deferred object will be failed with the same
-                error that caused the initial exception. Only the first exception
-                will be thrown. Once an error is thrown the loop stops and no more
-                items are processed.
+                error that caused the initial exception. Only the first
+                exception will be thrown. Once an error is thrown the loop
+                stops and no more items are processed.
 
                 If the action given to this function returns a Deferred object
                 then the loop will wait until that deferred has been resolved
@@ -187,15 +203,15 @@ SOFTWARE.
                 Given some object and some action, this function will perform
                 the action on each property of the object.
 
-                Properties of the object a enumerated using a for in loop that is
-                filtered by hasOwnProperty.
+                Properties of the object are enumerated using a for in loop that
+                is filtered by hasOwnProperty.
 
                 This function returns a Deferred object.
 
                 If the given action throws an exception at any point during the
-                loop, the Deferred object will be failed with the same error that
-                was thrown. Only the first exception will be detected. Once an
-                exception is thrown the loop stops and no more items are
+                loop, the Deferred object will be failed with the same error
+                that was thrown. Only the first exception will be detected.
+                Once an exception is thrown the loop stops and no more items are
                 processed.
 
                 If the given action returns a Deferred object then the loop will
@@ -281,7 +297,7 @@ SOFTWARE.
                 is thrown the loop stops and no more items are processed.
 
                 Once the final function has been processed, the Deferred will be
-                resolved with the output of the final functin.
+                resolved with the output of the final function.
 
                 If any of the functions return Deferred objects then the loop
                 will wait for that Deferred to be resolved for failed before
@@ -343,6 +359,23 @@ SOFTWARE.
 
             }
 
+            /*
+                This function performs a function on a list of objects and
+                produces a new list based on the return values of that function.
+
+                This function returns a Deferred object.
+
+                If any of the objects given causes an exception then the
+                Deferred object is failed with that exception. Once an exception
+                is thrown the loop stops and no more items are processed.
+
+                Once the final object has been processed, the Deferred will be
+                resolved with the newly created list.
+
+                If any of the functions return Deferred objects then the loop
+                will wait for that Deferred to be resolved for failed before
+                continuing on.
+            */
             function map(list, fn) {
 
                 var state = {
@@ -411,6 +444,26 @@ SOFTWARE.
 
         }(sequential));
 
+        /*
+            Given any number of functions to run this method will queue all of
+            these functions to be executed at the next available cycle. Unlike
+            the sequential counterpart, this method does manage the order of
+            execution for the given functions.
+
+            This function returns a Deferred object.
+
+            If any function causes throws an exception then the Deferred is
+            failed with that exception. Only the first exception thrown is used
+            even if multiple items fail. All given functions execute to
+            completion/failure regardless.
+
+            On completion of all functions the Deferred is resolved, but with no
+            associated value.
+
+            This method is Deferred aware and will use the resolve/fail status
+            of the Deferred returned by a function as the resolve/fail status
+            of the function.
+        */
         function fan() {
 
             var args = Array.prototype.slice.call(arguments),
@@ -476,6 +529,15 @@ SOFTWARE.
 
         }
 
+        /*
+            The `fan` submodule contains counterparts to most of the methods
+            in the `sequential` submodule. The only difference is functionality
+            between the two is that the `fan` methods queue all actions at once
+            rather that iterating through in sequence.
+
+            This is potentially useful when working with large numbers of
+            non-blocking actions.
+        */
         (function (fan) {
 
             function forEach(list, fn) {
