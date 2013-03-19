@@ -129,6 +129,78 @@ SOFTWARE.
         (function (sequential) {
 
             /*
+                Given some number, x, this method will run the given function
+                x times. The given function may, optionally, accept the current
+                iteration as the first parameter.
+
+                This function returns a Deferred object.
+
+                If any call to the given method results in it throwing an
+                exception, the Deferred object will be failed with the same
+                error that caused the initial exception. Only the first
+                exception will be thrown. Once an error is thrown the loop
+                stops and no more items are processed.
+
+                If the action given to this function returns a Deferred object
+                then the loop will wait until that deferred has been resolved
+                before continuing on.
+            */
+            function forX(x, fn) {
+
+                var state = {
+                    "offset": 0,
+                    "size": x,
+                    "deferred": new Deferred()
+                };
+
+                function next() {
+
+                    var fnDeferred;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve();
+                        return;
+
+                    }
+
+                    try {
+
+                        fnDeferred = fn(state.offset);
+
+                        if (fnDeferred &&
+                                fnDeferred.callback &&
+                                fnDeferred.errback) {
+
+                            fnDeferred.callback(next);
+                            fnDeferred.errback(function (err) {
+                                state.deferred.fail(err);
+                                state.offset = state.size;
+                            });
+
+                            return;
+
+                        }
+
+                        state.offset = state.offset + 1;
+                        defer(next);
+
+                    } catch (e) {
+
+                        state.deferred.fail(e);
+                        state.offset = state.size;
+                        return;
+
+                    }
+
+                }
+
+                defer(next);
+                return state.deferred.promise();
+
+            }
+
+            /*
                 Given a list of things and some action, this function will apply
                 the action to each item in the list.
 
@@ -437,6 +509,7 @@ SOFTWARE.
 
             }
 
+            sequential.forX = forX;
             sequential.forEach = forEach;
             sequential.forIn = forIn;
             sequential.chain = chain;
@@ -539,6 +612,76 @@ SOFTWARE.
             non-blocking actions.
         */
         (function (fan) {
+
+            function forX(x, fn) {
+
+                var state = {
+                        "offset": 0,
+                        "size": x,
+                        "deferred": new Deferred()
+                    },
+                    y;
+
+                if (state.size < 1) {
+
+                    state.deferred.resolve();
+
+                }
+
+                function complete() {
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve();
+
+                    }
+
+                }
+
+                function next(val) {
+
+                    var fnValue;
+
+                    try {
+
+                        fnValue = fn(val);
+
+                        if (fnValue &&
+                                fnValue.callback &&
+                                fnValue.errback) {
+
+                            fnValue.callback(complete);
+                            fnValue.errback(function (err) {
+                                state.deferred.fail(err);
+                                state.offset = state.size;
+                            });
+
+                            return;
+
+                        }
+
+                        complete();
+
+                    } catch (e) {
+
+                        state.deferred.fail(e);
+                        state.offset = state.size;
+
+                    }
+
+                }
+
+                for (y = 0; y < state.size; y = y + 1) {
+
+                    defer(apply(next, y));
+
+                }
+
+                return state.deferred.promise();
+
+            }
 
             function forEach(list, fn) {
 
@@ -773,6 +916,7 @@ SOFTWARE.
 
             }
 
+            fan.forX = forX;
             fan.forEach = forEach;
             fan.forIn = forIn;
             fan.map = map;
