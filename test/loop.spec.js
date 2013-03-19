@@ -67,6 +67,59 @@
 
                 });
 
+                describe('The forX function', function () {
+
+                    it('returns a promise', function () {
+
+                        var d = loop.sequential.forX(0, function () {});
+
+                        expect(d.callback).to.be.ok();
+                        expect(d.errback).to.be.ok();
+
+                    });
+
+                    it('resolves a promise on completion', function (done) {
+
+                        var d = loop.sequential.forX(0, function () {});
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                    it('uses iteration numbers as input', function (done) {
+
+                        var d = loop.sequential.forX(1, function (v) {
+                            expect(v).to.be(0);
+                        });
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                });
+
                 describe('The forEach function', function () {
 
                     it('returns a promise', function () {
@@ -340,6 +393,60 @@
 
                     d.errback(function (err) {
                         expect().fail(err);
+                    });
+
+                });
+
+                describe('The forX function', function () {
+
+                    it('returns a promise', function () {
+
+                        var d = loop.fan.forX(0, function () {});
+
+                        expect(d.callback).to.be.ok();
+                        expect(d.errback).to.be.ok();
+
+                    });
+
+                    it('resolves a promise on completion', function (done) {
+
+                        var d = loop.fan.forX(0, function () {});
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
+                    });
+
+                    it('uses iteration numbers as input', function (done) {
+
+                        var d = loop.fan.forX(1,
+                                function (v) {
+                                    expect(v).to.be(0);
+                                });
+
+                        d.callback(function (value) {
+
+                            done();
+
+                        });
+
+                        d.errback(function (err) {
+
+                            expect().fail(err);
+                            done();
+
+                        });
+
                     });
 
                 });
