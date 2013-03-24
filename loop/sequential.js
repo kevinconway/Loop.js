@@ -81,24 +81,650 @@ SOFTWARE.
 
         }
 
+        function forEach(list, fn) {
+
+            var state = {
+                "offset": 0,
+                "size": list.length,
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve();
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(fn, list[state.offset]));
+
+                fnDeferred.callback(function () {
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function forIn(obj, fn) {
+
+            var state = {
+                "keys": [],
+                "offset": 0,
+                "size": 0,
+                "deferred": new Deferred()
+            },
+                key;
+
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    state.keys.push(key);
+                }
+            }
+
+            state.size = state.keys.length;
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve();
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(fn, obj[state.keys[state.offset]]));
+
+                fnDeferred.callback(function () {
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function forX(x, fn) {
+
+            var state = {
+                "offset": 0,
+                "size": x,
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset >= state.size) {
+
+                    state.deferred.resolve();
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(fn, state.offset));
+
+                fnDeferred.callback(function () {
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function untilFalse(test, fn) {
+
+            var d = new Deferred();
+
+            function next() {
+
+                var testDeferred;
+
+                testDeferred = execute(test);
+
+                testDeferred.callback(function (testResult) {
+
+                    var fnDeferred;
+
+                    if (testResult === true) {
+
+                        fnDeferred = execute(fn);
+
+                        fnDeferred.callback(next);
+
+                        fnDeferred.errback(function (err) {
+
+                            d.fail(err);
+
+                        });
+                        return;
+                    }
+
+                    d.resolve();
+
+                });
+
+                testDeferred.errback(function (err) {
+
+                    d.fail(err);
+
+                });
+
+            }
+
+            defer(next);
+
+            return d.promise();
+
+        }
+
+        function doUntilFalse(test, fn) {
+
+            var d = new Deferred();
+
+            function next() {
+
+                var fnDeferred;
+
+                fnDeferred = execute(fn);
+
+                fnDeferred.callback(function () {
+
+                    var testDeferred;
+
+                    testDeferred = execute(test);
+
+                    testDeferred.callback(function (testResult) {
+
+                        if (testResult === true) {
+
+                            defer(next);
+                            return;
+                        }
+
+                        d.resolve();
+
+                    });
+
+                    testDeferred.errback(function (err) {
+
+                        d.fail(err);
+
+                    });
+
+                });
+
+                fnDeferred.errback(function (err) {
+
+                    d.fail(err);
+
+                });
+
+
+            }
+
+            defer(next);
+
+            return d.promise();
+
+        }
+
+        function untilTrue(test, fn) {
+
+            var d = new Deferred();
+
+            function next() {
+
+                var testDeferred;
+
+                testDeferred = execute(test);
+
+                testDeferred.callback(function (testResult) {
+
+                    var fnDeferred;
+
+                    if (testResult === false) {
+
+                        fnDeferred = execute(fn);
+
+                        fnDeferred.callback(next);
+
+                        fnDeferred.errback(function (err) {
+
+                            d.fail(err);
+
+                        });
+                        return;
+                    }
+
+                    d.resolve();
+
+                });
+
+                testDeferred.errback(function (err) {
+
+                    d.fail(err);
+
+                });
+
+            }
+
+            defer(next);
+
+            return d.promise();
+
+        }
+
+        function doUntilTrue(test, fn) {
+
+            var d = new Deferred();
+
+            function next() {
+
+                var fnDeferred;
+
+                fnDeferred = execute(fn);
+
+                fnDeferred.callback(function () {
+
+                    var testDeferred;
+
+                    testDeferred = execute(test);
+
+                    testDeferred.callback(function (testResult) {
+
+                        if (testResult === false) {
+
+                            defer(next);
+                            return;
+                        }
+
+                        d.resolve();
+
+                    });
+
+                    testDeferred.errback(function (err) {
+
+                        d.fail(err);
+
+                    });
+
+                });
+
+                fnDeferred.errback(function (err) {
+
+                    d.fail(err);
+
+                });
+
+
+            }
+
+            defer(next);
+
+            return d.promise();
+
+        }
+
+        function map(list, fn) {
+
+            var state = {
+                "offset": 0,
+                "size": list.length,
+                "list": [],
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve(state.list);
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(fn, list[state.offset]));
+
+                fnDeferred.callback(function (val) {
+                    state.list[state.offset] = val;
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function reduce(list, fn, val) {
+
+            var state = {
+                "offset": 0,
+                "size": list.length,
+                "val": val,
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve(state.val);
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(fn, list[state.offset], state.val));
+
+                fnDeferred.callback(function (val) {
+                    state.val = val;
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function select(list, test) {
+
+            var state = {
+                "offset": 0,
+                "size": list.length,
+                "list": [],
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve(state.list);
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+
+                fnDeferred.callback(function (val) {
+                    if (val === true) {
+                        state.list.push(list[state.offset]);
+                    }
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function remove(list, test) {
+
+            var state = {
+                "offset": 0,
+                "size": list.length,
+                "list": [],
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve(state.list);
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+
+                fnDeferred.callback(function (val) {
+                    if (val === false) {
+                        state.list.push(list[state.offset]);
+                    }
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function find(list, test) {
+
+            var state = {
+                "offset": 0,
+                "size": list.length,
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve();
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+
+                fnDeferred.callback(function (val) {
+                    if (val === true) {
+                        state.deferred.resolve(list[state.offset]);
+                        state.offset = state.size;
+                        return;
+                    }
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function all(list, test) {
+
+            var state = {
+                "offset": 0,
+                "size": list.length,
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve(true);
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+
+                fnDeferred.callback(function (val) {
+                    if (val === false) {
+                        state.deferred.resolve(false);
+                        state.offset = state.size;
+                        return;
+                    }
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function none(list, test) {
+
+            var state = {
+                "offset": 0,
+                "size": list.length,
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve(true);
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+
+                fnDeferred.callback(function (val) {
+                    if (val === true) {
+                        state.deferred.resolve(false);
+                        state.offset = state.size;
+                        return;
+                    }
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+        function join(list, fn) {
+
+            var state = {
+                "offset": 0,
+                "size": list.length,
+                "list": [],
+                "deferred": new Deferred()
+            };
+
+            function next() {
+
+                var fnDeferred;
+
+                if (state.offset > (state.size - 1)) {
+
+                    state.deferred.resolve(state.list);
+                    return;
+
+                }
+
+                fnDeferred = execute(helpers.apply(fn, list[state.offset]));
+
+                fnDeferred.callback(function (val) {
+                    state.list = state.list.concat(val);
+                    state.offset = state.offset + 1;
+                    defer(next);
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
+
+            }
+
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
         function sequential() {
-
-            /*
-                Given any number of functions to run this method will execute
-                each of these functions in sequence.
-
-                This function returns a Deferred object.
-
-                If any function causes throws an exception then the Deferred is
-                failed with that exception and the loop terminates.
-
-                On completion of all function the Deferred is resolved, but
-                with no associated value.
-
-                If any function in the sequence returns a Deferred then the
-                loop will wait for that Deferred to resolve or fail before
-                continuing on to the next function.
-            */
 
             var args = Array.prototype.slice.call(arguments),
                 state = {
@@ -118,34 +744,16 @@ SOFTWARE.
 
                 }
 
-                try {
+                fnDeferred = execute(args[state.offset]);
 
-                    fnDeferred = args[state.offset]();
-
-                    if (fnDeferred &&
-                            fnDeferred.callback &&
-                            fnDeferred.errback) {
-
-                        fnDeferred.callback(next);
-                        fnDeferred.errback(function (err) {
-                            state.deferred.fail(err);
-                            state.offset = state.size;
-                        });
-
-                        return;
-
-                    }
-
+                fnDeferred.callback(function () {
                     state.offset = state.offset + 1;
                     defer(next);
-
-                } catch (e) {
-
-                    state.deferred.fail(e);
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
                     state.offset = state.size;
-                    return;
-
-                }
+                });
 
             }
 
@@ -154,463 +762,63 @@ SOFTWARE.
 
         }
 
-        function forEach(list, fn) {
+        function chain() {
 
-
-
-        }
-
-        function forIn(obj, fn) {
-
-
-
-        }
-
-        function forX(x, fn) {
-
-
-
-        }
-
-        function untilFalse(test, fn) {
-
-
-
-        }
-
-        function doUntilFalse(test, fn) {
-
-
-
-        }
-
-        function untilTrue(test, fn) {
-
-
-
-        }
-
-        function doUntilTrue(test, fn) {
-
-
-
-        }
-
-        function map(list, fn) {
-
-
-
-        }
-
-        function reduce(list, fn, val) {
-
-
-
-        }
-
-        function select(list, fn) {
-
-
-
-        }
-
-        function remove(list, fn) {
-
-
-
-        }
-
-        function find(list, fn) {
-
-
-
-        }
-
-        function all(list, fn) {
-
-
-
-        }
-
-        function join(list, fn) {
-
-
-
-        }
-
-        (function (sequential) {
-
-            /*
-                Given some number, x, this method will run the given function
-                x times. The given function may, optionally, accept the current
-                iteration as the first parameter.
-
-                This function returns a Deferred object.
-
-                If any call to the given method results in it throwing an
-                exception, the Deferred object will be failed with the same
-                error that caused the initial exception. Only the first
-                exception will be thrown. Once an error is thrown the loop
-                stops and no more items are processed.
-
-                If the action given to this function returns a Deferred object
-                then the loop will wait until that deferred has been resolved
-                before continuing on.
-            */
-            function forX(x, fn) {
-
-                var state = {
-                    "offset": 0,
-                    "size": x,
-                    "deferred": new Deferred()
-                };
-
-                function next() {
-
-                    var fnDeferred;
-
-                    if (state.offset >= state.size) {
-
-                        state.deferred.resolve();
-                        return;
-
-                    }
-
-                    fnDeferred = execute(helpers.apply(fn, state.offset));
-
-                    fnDeferred.callback(function () {
-                        state.offset = state.offset + 1;
-                        defer(next);
-                    });
-
-                    fnDeferred.errback(function (err) {
-                        state.deferred.fail(err);
-                        state.offset = state.size;
-                    });
-
-                }
-
-                defer(next);
-                return state.deferred.promise();
-
-            }
-
-            /*
-                Given a list of things and some action, this function will apply
-                the action to each item in the list.
-
-                This function returns a Deferred object.
-
-                If any item in the list causes the given action to throw an
-                exception, the Deferred object will be failed with the same
-                error that caused the initial exception. Only the first
-                exception will be thrown. Once an error is thrown the loop
-                stops and no more items are processed.
-
-                If the action given to this function returns a Deferred object
-                then the loop will wait until that deferred has been resolved
-                before continuing on.
-            */
-            function forEach(list, fn) {
-
-                var state = {
+            var list = Array.prototype.slice.call(arguments),
+                state = {
                     "offset": 0,
                     "size": list.length,
                     "deferred": new Deferred()
                 };
 
-                function next() {
+            function next(value) {
 
-                    var fnDeferred;
+                var fnDeferred;
 
-                    if (state.offset > (state.size - 1)) {
+                if (state.offset > (state.size - 1)) {
 
-                        state.deferred.resolve();
-                        return;
-
-                    }
-
-                    try {
-
-                        fnDeferred = fn(list[state.offset]);
-
-                        if (fnDeferred &&
-                                fnDeferred.callback &&
-                                fnDeferred.errback) {
-
-                            fnDeferred.callback(next);
-                            fnDeferred.errback(function (err) {
-                                state.deferred.fail(err);
-                                state.offset = state.size;
-                            });
-
-                            return;
-
-                        }
-
-                        state.offset = state.offset + 1;
-                        defer(next);
-
-                    } catch (e) {
-
-                        state.deferred.fail(e);
-                        state.offset = state.size;
-                        return;
-
-                    }
+                    state.deferred.resolve(value);
+                    return;
 
                 }
 
-                defer(next);
-                return state.deferred.promise();
+                fnDeferred = execute(helpers.apply(list[state.offset], value));
+
+                fnDeferred.callback(function (val) {
+                    state.offset = state.offset + 1;
+                    defer(helpers.apply(next, val));
+                });
+                fnDeferred.errback(function (err) {
+                    state.deferred.fail(err);
+                    state.offset = state.size;
+                });
 
             }
 
-            /*
-                Given some object and some action, this function will perform
-                the action on each property of the object.
+            defer(next);
+            return state.deferred.promise();
+
+        }
+
+
+        sequential.sequential = sequential;
+        sequential.forEach = forEach;
+        sequential.forIn = forIn;
+        sequential.forX = forX;
+        sequential.untilFalse = untilFalse;
+        sequential.doUntilFalse = doUntilFalse;
+        sequential.untilTrue = untilTrue;
+        sequential.doUntilTrue = doUntilTrue;
+        sequential.map = map;
+        sequential.reduce = reduce;
+        sequential.select = select;
+        sequential.remove = remove;
+        sequential.find = find;
+        sequential.all = all;
+        sequential.none = none;
+        sequential.join = join;
+        sequential.chain = chain;
 
-                Properties of the object are enumerated using a for in loop that
-                is filtered by hasOwnProperty.
-
-                This function returns a Deferred object.
-
-                If the given action throws an exception at any point during the
-                loop, the Deferred object will be failed with the same error
-                that was thrown. Only the first exception will be detected.
-                Once an exception is thrown the loop stops and no more items are
-                processed.
-
-                If the given action returns a Deferred object then the loop will
-                wait until that Deferred has been resolved or failed before
-                continuing on in the loop.
-            */
-            function forIn(obj, fn) {
-
-                var state = {
-                    "keys": [],
-                    "offset": 0,
-                    "size": 0,
-                    "deferred": new Deferred()
-                },
-                    key;
-
-                for (key in obj) {
-                    if (obj.hasOwnProperty(key)) {
-                        state.keys.push(key);
-                    }
-                }
-
-                state.size = state.keys.length;
-
-                function next() {
-
-                    var fnDeferred;
-
-                    if (state.offset > (state.size - 1)) {
-
-                        state.deferred.resolve();
-                        return;
-
-                    }
-
-                    try {
-
-                        fnDeferred = fn(obj[state.keys[state.offset]]);
-
-                        if (fnDeferred &&
-                                fnDeferred.callback &&
-                                fnDeferred.errback) {
-
-                            fnDeferred.callback(next);
-                            fnDeferred.errback(function (err) {
-                                state.deferred.fail(err);
-                                state.offset = state.size;
-                            });
-
-                            return;
-
-                        }
-
-                        state.offset = state.offset + 1;
-                        defer(next);
-
-                    } catch (e) {
-
-                        state.deferred.fail(e);
-                        state.offset = state.size;
-                        return;
-
-                    }
-
-                }
-
-                defer(next);
-                return state.deferred.promise();
-
-            }
-
-            /*
-                This function processes a series of functions such that the
-                output of the first function is passed as input to the second
-                function and so on.
-
-                The first function recieves no input.
-
-                This function returns a Deferred object.
-
-                If any of the functions given throw an exception then the
-                Deferred object is failed with that exception. Once an exception
-                is thrown the loop stops and no more items are processed.
-
-                Once the final function has been processed, the Deferred will be
-                resolved with the output of the final function.
-
-                If any of the functions return Deferred objects then the loop
-                will wait for that Deferred to be resolved for failed before
-                continuing on.
-            */
-            function chain() {
-
-                var list = Array.prototype.slice.call(arguments),
-                    state = {
-                        "offset": 0,
-                        "size": list.length,
-                        "deferred": new Deferred()
-                    };
-
-                function next(value) {
-
-                    var fnValue;
-
-                    if (state.offset > (state.size - 1)) {
-
-                        state.deferred.resolve(value);
-                        return;
-
-                    }
-
-                    try {
-
-                        fnValue = list[state.offset](value);
-
-                        if (fnValue &&
-                                fnValue.callback &&
-                                fnValue.errback) {
-
-                            fnValue.callback(next);
-                            fnValue.errback(function (err) {
-                                state.deferred.fail(err);
-                                state.offset = state.size;
-                            });
-
-                            return;
-
-                        }
-
-                        state.offset = state.offset + 1;
-                        defer(helpers.apply(next, fnValue));
-
-                    } catch (e) {
-
-                        state.deferred.fail(e);
-                        state.offset = state.size;
-                        return;
-
-                    }
-
-                }
-
-                defer(next);
-                return state.deferred.promise();
-
-            }
-
-            /*
-                This function performs a function on a list of objects and
-                produces a new list based on the return values of that function.
-
-                This function returns a Deferred object.
-
-                If any of the objects given causes an exception then the
-                Deferred object is failed with that exception. Once an exception
-                is thrown the loop stops and no more items are processed.
-
-                Once the final object has been processed, the Deferred will be
-                resolved with the newly created list.
-
-                If any of the functions return Deferred objects then the loop
-                will wait for that Deferred to be resolved for failed before
-                continuing on.
-            */
-            function map(list, fn) {
-
-                var state = {
-                    "offset": 0,
-                    "size": list.length,
-                    "list": [],
-                    "deferred": new Deferred()
-                };
-
-                function next() {
-
-                    var fnDeferred;
-
-                    if (state.offset > (state.size - 1)) {
-
-                        state.deferred.resolve(state.list);
-                        return;
-
-                    }
-
-                    try {
-
-                        fnDeferred = fn(list[state.offset]);
-
-                        if (fnDeferred &&
-                                fnDeferred.callback &&
-                                fnDeferred.errback) {
-
-                            fnDeferred.callback(function (val) {
-                                state.list[state.offset] = val;
-                                state.offset = state.offset + 1;
-                                defer(next);
-                            });
-                            fnDeferred.errback(function (err) {
-                                state.deferred.fail(err);
-                                state.offset = state.size;
-                            });
-
-                            return;
-
-                        }
-
-                        state.list[state.offset] = fnDeferred;
-                        state.offset = state.offset + 1;
-                        defer(next);
-
-                    } catch (e) {
-
-                        state.deferred.fail(e);
-                        state.offset = state.size;
-                        return;
-
-                    }
-
-                }
-
-                defer(next);
-                return state.deferred.promise();
-
-            }
-
-            sequential.forX = forX;
-            sequential.forEach = forEach;
-            sequential.forIn = forIn;
-            sequential.chain = chain;
-            sequential.map = map;
-
-        }(sequential));
 
         return sequential;
 
