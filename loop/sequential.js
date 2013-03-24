@@ -30,47 +30,75 @@ SOFTWARE.
     var env = factory.env,
         def = factory.def,
         deps = {
-            amd: ['./node_modules/deferjs/defer.js', './node_modules/deferredjs/deferred.js'],
-            node: ['deferjs', 'deferredjs'],
-            browser: ['defer', 'Deferred']
+            amd: ['../node_modules/deferjs/defer.js', '../node_modules/deferredjs/deferred.js', './helpers.js'],
+            node: ['deferjs', 'deferredjs', './helpers'],
+            browser: ['defer', 'Deferred', 'loop/helpers']
         };
 
-    def.call(ctx, 'loop', deps[env], function (defer, Deferred) {
+    def.call(ctx, 'loop/sequential', deps[env], function (defer, Deferred, helpers) {
 
-        /*
-            This is a helper function to ease the process of binding
-            deferred functions to their parameters.
-        */
-        function apply() {
+        function execute(fn) {
 
-            var args = Array.prototype.slice.call(arguments),
-                fn = args.shift();
+            var d, fnDeferred;
 
-            return function () {
+            function resolve() {
 
-                return fn.apply({}, args);
+                try {
 
-            };
+                    fnDeferred = fn();
+
+                    if (fnDeferred &&
+                            fnDeferred.callback &&
+                            fnDeferred.errback) {
+
+                        fnDeferred.callback(function (value) {
+                            d.resolve(value);
+                        });
+                        fnDeferred.errback(function (err) {
+                            d.fail(err);
+                        });
+
+                        return;
+
+                    }
+
+                    d.resolve(fnDeferred);
+
+                } catch (e) {
+
+                    d.fail(e);
+                    return;
+
+                }
+
+            }
+
+            d = new Deferred();
+
+            defer(resolve);
+
+            return d.promise();
 
         }
 
-        /*
-            Given any number of functions to run this method will execute each
-            of these functions in sequence.
-
-            This function returns a Deferred object.
-
-            If any function causes throws an exception then the Deferred is
-            failed with that exception and the loop terminates.
-
-            On completion of all function the Deferred is resolved, but with no
-            associated value.
-
-            If any function in the sequence returns a Deferred then the loop
-            will wait for that Deferred to resolve or fail before continuing
-            on to the next function.
-        */
         function sequential() {
+
+            /*
+                Given any number of functions to run this method will execute
+                each of these functions in sequence.
+
+                This function returns a Deferred object.
+
+                If any function causes throws an exception then the Deferred is
+                failed with that exception and the loop terminates.
+
+                On completion of all function the Deferred is resolved, but
+                with no associated value.
+
+                If any function in the sequence returns a Deferred then the
+                loop will wait for that Deferred to resolve or fail before
+                continuing on to the next function.
+            */
 
             var args = Array.prototype.slice.call(arguments),
                 state = {
@@ -126,6 +154,90 @@ SOFTWARE.
 
         }
 
+        function forEach(list, fn) {
+
+
+
+        }
+
+        function forIn(obj, fn) {
+
+
+
+        }
+
+        function forX(x, fn) {
+
+
+
+        }
+
+        function untilFalse(test, fn) {
+
+
+
+        }
+
+        function doUntilFalse(test, fn) {
+
+
+
+        }
+
+        function untilTrue(test, fn) {
+
+
+
+        }
+
+        function doUntilTrue(test, fn) {
+
+
+
+        }
+
+        function map(list, fn) {
+
+
+
+        }
+
+        function reduce(list, fn, val) {
+
+
+
+        }
+
+        function select(list, fn) {
+
+
+
+        }
+
+        function remove(list, fn) {
+
+
+
+        }
+
+        function find(list, fn) {
+
+
+
+        }
+
+        function all(list, fn) {
+
+
+
+        }
+
+        function join(list, fn) {
+
+
+
+        }
+
         (function (sequential) {
 
             /*
@@ -164,34 +276,17 @@ SOFTWARE.
 
                     }
 
-                    try {
+                    fnDeferred = execute(helpers.apply(fn, state.offset));
 
-                        fnDeferred = fn(state.offset);
-
-                        if (fnDeferred &&
-                                fnDeferred.callback &&
-                                fnDeferred.errback) {
-
-                            fnDeferred.callback(next);
-                            fnDeferred.errback(function (err) {
-                                state.deferred.fail(err);
-                                state.offset = state.size;
-                            });
-
-                            return;
-
-                        }
-
+                    fnDeferred.callback(function () {
                         state.offset = state.offset + 1;
                         defer(next);
+                    });
 
-                    } catch (e) {
-
-                        state.deferred.fail(e);
+                    fnDeferred.errback(function (err) {
+                        state.deferred.fail(err);
                         state.offset = state.size;
-                        return;
-
-                    }
+                    });
 
                 }
 
@@ -414,7 +509,7 @@ SOFTWARE.
                         }
 
                         state.offset = state.offset + 1;
-                        defer(apply(next, fnValue));
+                        defer(helpers.apply(next, fnValue));
 
                     } catch (e) {
 
@@ -517,417 +612,7 @@ SOFTWARE.
 
         }(sequential));
 
-        /*
-            Given any number of functions to run this method will queue all of
-            these functions to be executed at the next available cycle. Unlike
-            the sequential counterpart, this method does manage the order of
-            execution for the given functions.
-
-            This function returns a Deferred object.
-
-            If any function causes throws an exception then the Deferred is
-            failed with that exception. Only the first exception thrown is used
-            even if multiple items fail. All given functions execute to
-            completion/failure regardless.
-
-            On completion of all functions the Deferred is resolved, but with no
-            associated value.
-
-            This method is Deferred aware and will use the resolve/fail status
-            of the Deferred returned by a function as the resolve/fail status
-            of the function.
-        */
-        function fan() {
-
-            var args = Array.prototype.slice.call(arguments),
-                state = {
-                    "offset": 0,
-                    "size": args.length,
-                    "deferred": new Deferred()
-                },
-                x;
-
-            function complete() {
-
-                state.offset = state.offset + 1;
-
-                if (state.offset >= state.size) {
-
-                    state.deferred.resolve();
-
-                }
-
-            }
-
-            function next(fn) {
-
-                var fnValue;
-
-                try {
-
-                    fnValue = fn();
-
-                    if (fnValue &&
-                            fnValue.callback &&
-                            fnValue.errback) {
-
-                        fnValue.callback(complete);
-                        fnValue.errback(function (err) {
-                            state.deferred.fail(err);
-                            state.offset = state.size;
-                        });
-
-                        return;
-
-                    }
-
-                    complete();
-
-                } catch (e) {
-
-                    state.deferred.fail(e);
-                    state.offset = state.size;
-
-                }
-
-            }
-
-            for (x = 0; x < state.size; x = x + 1) {
-
-                defer(apply(next, args[x]));
-
-            }
-
-            return state.deferred.promise();
-
-        }
-
-        /*
-            The `fan` submodule contains counterparts to most of the methods
-            in the `sequential` submodule. The only difference is functionality
-            between the two is that the `fan` methods queue all actions at once
-            rather that iterating through in sequence.
-
-            This is potentially useful when working with large numbers of
-            non-blocking actions.
-        */
-        (function (fan) {
-
-            function forX(x, fn) {
-
-                var state = {
-                        "offset": 0,
-                        "size": x,
-                        "deferred": new Deferred()
-                    },
-                    y;
-
-                if (state.size < 1) {
-
-                    state.deferred.resolve();
-
-                }
-
-                function complete() {
-
-                    state.offset = state.offset + 1;
-
-                    if (state.offset >= state.size) {
-
-                        state.deferred.resolve();
-
-                    }
-
-                }
-
-                function next(val) {
-
-                    var fnValue;
-
-                    try {
-
-                        fnValue = fn(val);
-
-                        if (fnValue &&
-                                fnValue.callback &&
-                                fnValue.errback) {
-
-                            fnValue.callback(complete);
-                            fnValue.errback(function (err) {
-                                state.deferred.fail(err);
-                                state.offset = state.size;
-                            });
-
-                            return;
-
-                        }
-
-                        complete();
-
-                    } catch (e) {
-
-                        state.deferred.fail(e);
-                        state.offset = state.size;
-
-                    }
-
-                }
-
-                for (y = 0; y < state.size; y = y + 1) {
-
-                    defer(apply(next, y));
-
-                }
-
-                return state.deferred.promise();
-
-            }
-
-            function forEach(list, fn) {
-
-                var state = {
-                        "offset": 0,
-                        "size": list.length,
-                        "deferred": new Deferred()
-                    },
-                    x;
-
-                if (state.size < 1) {
-
-                    state.deferred.resolve();
-
-                }
-
-                function complete() {
-
-                    state.offset = state.offset + 1;
-
-                    if (state.offset >= state.size) {
-
-                        state.deferred.resolve();
-
-                    }
-
-                }
-
-                function next(val) {
-
-                    var fnValue;
-
-                    try {
-
-                        fnValue = fn(val);
-
-                        if (fnValue &&
-                                fnValue.callback &&
-                                fnValue.errback) {
-
-                            fnValue.callback(complete);
-                            fnValue.errback(function (err) {
-                                state.deferred.fail(err);
-                                state.offset = state.size;
-                            });
-
-                            return;
-
-                        }
-
-                        complete();
-
-                    } catch (e) {
-
-                        state.deferred.fail(e);
-                        state.offset = state.size;
-
-                    }
-
-                }
-
-                for (x = 0; x < state.size; x = x + 1) {
-
-                    defer(apply(next, list[x]));
-
-                }
-
-                return state.deferred.promise();
-
-            }
-
-            function forIn(obj, fn) {
-
-                var state = {
-                    "keys": [],
-                    "offset": 0,
-                    "size": 0,
-                    "deferred": new Deferred()
-                },
-                    key,
-                    x;
-
-                for (key in obj) {
-                    if (obj.hasOwnProperty(key)) {
-                        state.keys.push(key);
-                    }
-                }
-
-                state.size = state.keys.length;
-
-                if (state.size < 1) {
-
-                    state.deferred.resolve();
-
-                }
-
-                function complete() {
-
-                    state.offset = state.offset + 1;
-
-                    if (state.offset >= state.size) {
-
-                        state.deferred.resolve();
-
-                    }
-
-                }
-
-                function next(key) {
-
-                    var fnValue;
-
-                    try {
-
-                        fnValue = fn(obj[key]);
-
-                        if (fnValue &&
-                                fnValue.callback &&
-                                fnValue.errback) {
-
-                            fnValue.callback(complete);
-                            fnValue.errback(function (err) {
-                                state.deferred.fail(err);
-                                state.offset = state.size;
-                            });
-
-                            return;
-
-                        }
-
-                        complete();
-
-                    } catch (e) {
-
-                        state.deferred.fail(e);
-                        state.offset = state.size;
-
-                    }
-
-                }
-
-                for (x = 0; x < state.size; x = x + 1) {
-
-                    defer(apply(next, state.keys[x]));
-
-                }
-
-                return state.deferred.promise();
-
-            }
-
-            function map(list, fn) {
-
-                var state = {
-                    "complete": 0,
-                    "size": list.length,
-                    "list": [],
-                    "deferred": new Deferred()
-                },
-                    x;
-
-                if (state.size < 1) {
-
-                    state.deferred.resolve([]);
-
-                }
-
-                function complete() {
-
-                    state.complete = state.complete + 1;
-
-                    if (state.complete >= state.size) {
-
-                        state.deferred.resolve(state.list);
-
-                    }
-
-                }
-
-                function next(offset) {
-
-                    var fnValue;
-
-                    if (state.offset > (state.size - 1)) {
-
-                        state.deferred.resolve(state.list);
-                        return;
-
-                    }
-
-                    try {
-
-                        fnValue = fn(list[offset]);
-
-                        if (fnValue &&
-                                fnValue.callback &&
-                                fnValue.errback) {
-
-                            fnValue.callback(function (val) {
-                                state.list[offset] = val;
-                                complete();
-                            });
-                            fnValue.errback(function (err) {
-                                state.deferred.fail(err);
-                                state.complete = state.size;
-                            });
-
-                            return;
-
-                        }
-
-                        state.list[offset] = fnValue;
-                        complete();
-
-                    } catch (e) {
-
-                        state.deferred.fail(e);
-                        state.offset = state.size;
-                        return;
-
-                    }
-
-                }
-
-                for (x = 0; x < state.size; x = x + 1) {
-
-                    defer(apply(next, x));
-
-                }
-
-                return state.deferred.promise();
-
-            }
-
-            fan.forX = forX;
-            fan.forEach = forEach;
-            fan.forIn = forIn;
-            fan.map = map;
-
-        }(fan));
-
-        return {
-            "apply": apply,
-            "sequential": sequential,
-            "fan": fan
-        };
+        return sequential;
 
     });
 
