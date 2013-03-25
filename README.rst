@@ -10,71 +10,124 @@ What Is Loop?
 ===============
 
 Loop is a utility designed to help developers make better use of
-the JavaScript concurrency model. Loops provides a set of functions that
+the JavaScript concurrency model. Loop provides a set of functions that
 replace synchronous looping with asynchronous looping.
 
-All loops return a Deferred object that is resolved when the loop is complete.
+All loops return a Deferred object that is resolved when the loop is completed.
+
+Loops can process sequentially (one item then the next), fanned (all items
+processed concurrently), or batched (up to N items processed concurrently).
 
 Status
 ======
 
-Loop is still in early development.
+Loop is still under development. Currently the sequential and fan modules are
+complete and tested. Below are the implemented loops along with which loop
+types they support.
 
-Currently supported loops are:
+-   forEach(list, fn)
 
--   sequential(fn, fn, fn, ...)
+    Perform `fn` for each item in `list`. `fn` is passed the current list value,
+    current list offset, and a reference to `list` as arguments.
 
-    Perform each function given in order. Each function runs after the
-    previous has completed. If a function returns a deferred the loop will
-    wait until that deferred is resolved before continuing.
+    Supports sequential and fan.
 
-    -   forEach(list, fn)
+-   forIn(obj, fn)
 
-        Perform `fn` for each item in the list. If `fn` returns a deferred
-        then the loop waits for the deferred to resolve before continuing.
+    Perform `fn` for each key in obj. `fn` is passed the current object value,
+    current key, and a reference to `obj` as parameters.
 
-    -   forIn(obj, fn)
+    Supports sequential and fan.
 
-        Perform `fn` for each native property in the object. This loop
-        utilizes a filtered for-in loop. If `fn` returns a deferred then the
-        loop will wait until that deferred is resolved before continuing.
+-   forX(x, fn)
 
-    -   chain(fn, fn, fn, ...)
+    Perform `fn` `x` times. `fn` is passed the current `x` as a parameter.
 
-        Perform each function in the list where each function receives the
-        input of the function that ran just before it. The first function in
-        the list is run without input. If any function in the list returns a
-        deferred then the loop will wait for that deferred to resolve before
-        continuing. The value resolved by the deferred will be passed in as
-        input to the next function. The value returned by the last function
-        will be the value used to resolve the deferred returned by a call to
-        this function.
+    Supports sequential and fan.
 
-    -   map(list, fn)
+-   untilFalse(test, fn)
 
-        Perform `fn` on each item in `list` and produce a new list containing
-        the value produced by `fn`.
+    Perform `fn` until `test` returns `false`.
 
--   fan(fn, fn, fn, ...)
+    Supports sequential.
 
-    Defer all given functions at the same time. Execution and completion order
-    are not guaranteed. This method, and its submodules, are only
-    particularly useful if the given functions are leveraging some form of
-    non-blocking behaviour.
+-   doUntilFalse(test, fn)
 
-    -   forEach(list, fn)
+    Perform `fn` until `test` returns `false`. `fn` is always run at least once.
 
-        Perform `fn` for each item in the list.
+    Supports sequential.
 
-    -   forIn(obj, fn)
+-   untilTrue(test, fn)
 
-        Perform `fn` for each native property in the object. This loop
-        utilizes a filtered for-in loop.
+    Perform `fn` until `test` returns `true`.
 
-    -   map(list, fn)
+    Supports sequential.
 
-        Perform `fn` on each item in `list` and produce a new list containing
-        the value produced by `fn`.
+-   doUntilTrue(test, fn)
+
+    Perform `fn` until `test` returns `true`. `fn` is always run at least once.
+
+    Supports sequential.
+
+-   map(list, fn)
+
+    Perform `fn` on each item in `list` to generate a new list containing the
+    return values from `fn`. `fn` is passed the current list value as a
+    parameter.
+
+    Supports sequential and fan.
+
+-   reduce(list, fn, value)
+
+    Perform `fn` on each item in `list` to produce a single value. `value`
+    represents the initial value state. `value` is repeatedly set to the return
+    of `fn`. `fn` is passed the current list item and `value` as parameters.
+
+    Supports sequential.
+
+-   select(list, test)
+
+    Perform `test` for each item in `list` and generate a new list containing
+    only the values from `list` for which `test` returned `true`.
+
+    Supports sequential and fan.
+
+-   remove(list, test)
+
+    Perform `test` for each item in `list` and generate a new list containing
+    only the values from `list` for which `test` returned `false`.
+
+    Supports sequential and fan.
+
+-   find(list, test)
+
+    Return the the first value of `list` for which `test` returns a `true`.
+
+    Supports sequential and fan.
+
+-   all(list, test)
+
+    Resolves to `true` when every element of `list` produces `true` when
+    given to `test`. Otherwise resolves to `false`.
+
+    Supports sequential and fan.
+
+-   none(list, test)
+
+    Resolves to `true` when every element of `list` produces `false` when
+    given to `test`. Otherwise resolves to `false`.
+
+    Supports sequential and fan.
+
+-   join(list, fn)
+
+    Performs `fn` for each item in `list`. Resolves to a single list containing
+    all of the return values from `fn`. This method differs from `map` in that
+    all return results from `fn` are joined together in a flat list using
+    `Array.prototype.concat`.
+
+    Supports sequential and fan.
+
 
 Show Me
 =======
@@ -86,98 +139,18 @@ Show Me
 
             return value * 2;
         },
-        logResults = function (values) {
+        d;
 
-            var x;
+    d = loop.sequential.map(list, fn);
+    d.callback(function (newList) {
+        console.log(newList); // [2, 4, 6, 8, 10]
+    });
 
-            for (x = 0; x < values.length; x = x + 1) {
-                console.log(values[x]);
-            }
+    d = loop.fan.map(list, fn);
+    d.callback(function (newList) {
+        console.log(newList); // [2, 4, 6, 8, 10]
+    });
 
-        },
-        sequentialDeferred,
-        fanDeferred;
-
-    sequentialDeferred = loop.sequential.map(list, fn);
-    fanDeferred = loop.fan.map(list, fn);
-
-    sequentialDeferred.callback(logResults);
-    fanDeferred.callback(logResults);
-
-Setup Instructions
-==================
-
-This library is designed to operate in multiple JavaScript environments without
-requiring change to the code base. To accomplish this, all modules have been
-wrapped in a specialized module pattern that will detect the current
-environment and choose the most appropriate loading mechanism for dependencies.
-
-Currently support platforms are Node.js, browser via <script>, and AMD via
-RequireJS.
-
-Node.js
--------
-
-This package is published through NPM under the name `loopjs` and can be
-installed with::
-
-    $ npm install loopjs
-
-This should automatically install all dependencies (deferjs and deferredjs).
-
-This package can then be loaded with `require('loopjs')`.
-
-Browser (<script>)
-------------------
-
-Developers working with a normal browser environment can use regular script
-tags to load the package. This package has dependencies on these other
-packages:
-
--   `Modelo <https://github.com/kevinconway/Modelo.js>`_
-
--   `Defer <https://github.com/kevinconway/Defer.js>`_
-
--   `Event <https://github.com/kevinconway/Event.js>`_
-
--   `Deferred <https://github.com/kevinconway/Deferred.js>`_
-
-The load order should be something like this::
-
-    <script src="modelo.js"></script>
-    <script src="defer.js"></script>
-    <script src="event.js"></script>
-    <script src="deferred.js"></script>
-    <script src="loop.js"></script>
-
-The package loads into a global variable named `Loop`.
-
-Browser (AMD)
--------------
-
-Developers working with RequireJS can also load this package with `require()`.
-
-One thing to note, however, is that this package has its own dependencies that
-must also be available through `require()`. Developers with NPM installed can
-make use of the pre-configured dependency options by doing the following::
-
-    $ npm install deferredjs
-    $ cd node_modules/deferredjs/node_modules/eventjs
-    $ npm install
-    $ cd ../../../eventjs
-    $ npm install
-
-Now when you reference `loopjs` as a dependency it should properly load
-its own dependencies.
-
-If you require something more specific then you can edit the dependency options
-for this package by looking for the following line 33 which should be::
-
-    amd: ['./node_modules/deferjs/defer.js',
-            './node_modules/deferredjs/deferred.js'],
-
-Simply change these paths to match where you have placed the corresponding
-files.
 
 License
 =======
