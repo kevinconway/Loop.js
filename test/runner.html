@@ -31,12 +31,21 @@
       }
     </script>
 
-    <script src="../loop/node_modules/deferjs/defer.js"></script>
-    <script src="../loop/node_modules/deferredjs/node_modules/modelo/modelo.js"></script>
-    <script src="../loop/node_modules/deferredjs/node_modules/eventjs/event.js"></script>
-    <script src="../loop/node_modules/deferredjs/deferred.js"></script>
-    <script src="../loop/loop.js"></script>
-    <script src="./loop.spec.js"></script>
+    <script src="../node_modules/deferjs/defer/defer.js"></script>
+    <script src="../node_modules/deferredjs/node_modules/modelo/modelo/modelo.js"></script>
+    <script src="../node_modules/deferredjs/node_modules/eventjs/event/event.js"></script>
+    <script src="../node_modules/deferredjs/deferred/deferred.js"></script>
+
+    <script src="../loop/helpers.js"></script>
+    <script src="../loop/sequential.js"></script>
+    <script src="../loop/fan.js"></script>
+    <script src="../loop/batch.js"></script>
+
+
+    <script src="./loop.sequential.spec.js"></script>
+    <script src="./loop.fan.spec.js"></script>
+    <script src="./loop.batch.spec.js"></script>
+
 
     <script>
      onload = function(){
