@@ -38,7 +38,802 @@ SOFTWARE.
     def.call(ctx, 'loop/batch', deps[env], function (defer, Deferred, helpers) {
 
 
-        return {};
+        function forEach(list, fn, limit) {
+
+            var state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "limit": limit || 1,
+                    "deferred": new Deferred()
+                },
+                x;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve();
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(func, n) {
+
+                var fnDeferred = helpers.execute(func);
+
+                fnDeferred.callback(function (value) {
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve();
+
+                    }
+
+                    if (n + state.limit < state.size) {
+
+                        complete(
+                            helpers.apply(
+                                fn,
+                                list[n + state.limit],
+                                n + state.limit,
+                                list
+                            ),
+                            x
+                        );
+
+                    }
+
+                });
+
+                fnDeferred.errback(fail);
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(
+                    helpers.apply(
+                        fn,
+                        list[x],
+                        x,
+                        list
+                    ),
+                    x
+                );
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function forIn(obj, fn, limit) {
+
+            var state = {
+                    "keys": [],
+                    "offset": 0,
+                    "size": 0,
+                    "limit": limit || 1,
+                    "deferred": new Deferred()
+                },
+                key,
+                x;
+
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    state.keys.push(key);
+                }
+            }
+
+            state.size = state.keys.length;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve();
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(func, n) {
+
+                var fnDeferred = helpers.execute(func);
+
+                fnDeferred.callback(function (value) {
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve();
+
+                    }
+
+                    if (n + state.limit < state.size) {
+
+                        complete(
+                            helpers.apply(
+                                fn,
+                                obj[state.keys[n + state.limit]],
+                                state.keys[n + state.limit],
+                                obj
+                            ),
+                            n + state.limit
+                        );
+
+                    }
+
+                });
+
+                fnDeferred.errback(fail);
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(
+                    helpers.apply(
+                        fn,
+                        obj[state.keys[x]],
+                        state.keys[x],
+                        obj
+                    ),
+                    x
+                );
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function forX(x, fn, limit) {
+
+            var state = {
+                    "offset": 0,
+                    "size": x,
+                    "limit": limit || 1,
+                    "deferred": new Deferred()
+                },
+                y;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve();
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(func, n) {
+
+                var fnDeferred = helpers.execute(func);
+
+                fnDeferred.callback(function (value) {
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve();
+
+                    }
+
+                    if (n + state.limit < state.size) {
+
+                        complete(
+                            helpers.apply(
+                                fn,
+                                n + state.limit
+                            ),
+                            n + state.limit
+                        );
+
+                    }
+
+                });
+
+
+            }
+
+            for (y = 0; y < state.limit; y = y + 1) {
+
+                complete(helpers.apply(fn, y), y);
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function map(list, fn, limit) {
+
+            var state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "limit": limit || 1,
+                    "list": [],
+                    "deferred": new Deferred()
+                },
+                x;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve([]);
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(func, n) {
+
+                var fnDeferred = helpers.execute(func);
+
+                fnDeferred.callback(function (value) {
+
+                    state.offset = state.offset + 1;
+                    state.list[n] = value;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve(state.list);
+
+                    }
+
+                    if (n + state.limit < state.size) {
+
+                        complete(
+                            helpers.apply(
+                                fn,
+                                list[n + state.limit]
+                            ),
+                            n + state.limit
+                        );
+
+                    }
+
+                });
+
+                fnDeferred.errback(fail);
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(helpers.apply(fn, list[x]), x);
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function select(list, test, limit) {
+
+            var state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "limit": limit || 1,
+                    "list": [],
+                    "deferred": new Deferred()
+                },
+                x;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve([]);
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(testFunc, n) {
+
+                var testDeferred = helpers.execute(testFunc);
+
+                testDeferred.callback(function (testResults) {
+
+                    if (testResults === true) {
+                        state.list.push(list[n]);
+                    }
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve(state.list);
+
+                    }
+
+                    if (n + state.limit < state.size) {
+                        complete(
+                            helpers.apply(
+                                test,
+                                list[n + state.limit]
+                            ),
+                            n + state.limit
+                        );
+
+                    }
+
+                });
+
+                testDeferred.errback(fail);
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(helpers.apply(test, list[x]), x);
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function remove(list, test, limit) {
+
+            var state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "limit": limit || 1,
+                    "list": [],
+                    "deferred": new Deferred()
+                },
+                x;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve([]);
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(testFunc, n) {
+
+                var testDeferred = helpers.execute(testFunc);
+
+                testDeferred.callback(function (testResults) {
+
+                    if (testResults === false) {
+                        state.list.push(list[n]);
+                    }
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve(state.list);
+
+                    }
+
+                    if (n + state.limit < state.size) {
+                        complete(
+                            helpers.apply(
+                                test,
+                                list[n + state.limit]
+                            ),
+                            n + state.limit
+                        );
+
+                    }
+
+                });
+
+                testDeferred.errback(fail);
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(helpers.apply(test, list[x]), x);
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function find(list, test, limit) {
+
+            var state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "limit": limit || 1,
+                    "deferred": new Deferred()
+                },
+                x;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve([]);
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(testFunc, n) {
+
+                var testDeferred = helpers.execute(testFunc);
+
+                testDeferred.callback(function (testResults) {
+                    if (testResults === true) {
+                        state.deferred.resolve(list[n]);
+                        state.offset = state.size;
+                        return;
+                    }
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve();
+
+                    }
+
+                    if (n + state.limit < state.size) {
+
+                        complete(
+                            helpers.apply(
+                                test,
+                                list[n + state.limit]
+                            ),
+                            n + state.limit
+                        );
+
+                    }
+
+                });
+
+                testDeferred.errback(fail);
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(helpers.apply(test, list[x]), x);
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function all(list, test, limit) {
+
+            var state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "limit": limit || 1,
+                    "deferred": new Deferred()
+                },
+                x;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve([]);
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(testFunc, n) {
+
+                var testDeferred = helpers.execute(testFunc);
+
+                testDeferred.callback(function (testResults) {
+                    if (testResults === false) {
+                        state.deferred.resolve(false);
+                        state.offset = state.size;
+                        return;
+                    }
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve(true);
+
+                    }
+
+                    if (n + state.limit < state.size) {
+
+                        complete(
+                            helpers.apply(
+                                test,
+                                list[n + state.limit]
+                            ),
+                            n + state.limit
+                        );
+
+                    }
+
+                });
+
+                testDeferred.errback(fail);
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(helpers.apply(test, list[x]), x);
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function none(list, test, limit) {
+
+            var state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "limit": limit || 1,
+                    "deferred": new Deferred()
+                },
+                x;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve([]);
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(testFunc, n) {
+
+                var testDeferred = helpers.execute(testFunc);
+
+                testDeferred.callback(function (testResults) {
+                    if (testResults === true) {
+                        state.deferred.resolve(false);
+                        state.offset = state.size;
+                        return;
+                    }
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve(true);
+
+                    }
+
+                    if (n + state.limit < state.size) {
+
+                        complete(
+                            helpers.apply(
+                                test,
+                                list[n + state.limit]
+                            ),
+                            n + state.limit
+                        );
+
+                    }
+
+                });
+
+                testDeferred.errback(fail);
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(helpers.apply(test, list[x]), x);
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function join(list, fn, limit) {
+
+            var state = {
+                    "offset": 0,
+                    "size": list.length,
+                    "limit": limit || 1,
+                    "list": [],
+                    "deferred": new Deferred()
+                },
+                x,
+                fnDeferred;
+
+            if (state.size < 1) {
+
+                state.deferred.resolve([]);
+
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(func, n) {
+
+                var fnDeferred = helpers.execute(func);
+
+                fnDeferred.callback(function (value) {
+
+                    state.offset = state.offset + 1;
+                    state.list = state.list.concat(value);
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve(state.list);
+
+                    }
+
+                    if (n + state.limit < state.size) {
+
+                        complete(
+                            helpers.apply(
+                                fn,
+                                list[n + state.limit]
+                            ),
+                            n + state.limit
+                        );
+
+                    }
+
+                });
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(helpers.apply(fn, list[x]), x);
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+        function batch() {
+
+            var args = Array.prototype.slice.call(arguments),
+                state = {
+                    "offset": 0,
+                    "size": args.length,
+                    "limit": 1,
+                    "deferred": new Deferred()
+                },
+                x;
+
+            if (typeof args[args.length - 1] === 'Number') {
+                state.limit = args.pop() || 1;
+            }
+
+            if (state.limit > state.size) {
+                state.limit = state.size;
+            }
+
+            function fail(err) {
+                state.offset = state.size;
+                state.deferred.fail(err);
+            }
+
+            function complete(func, n) {
+
+                var fnDeferred = helpers.execute(func);
+
+                fnDeferred.callback(function (value) {
+
+                    state.offset = state.offset + 1;
+
+                    if (state.offset >= state.size) {
+
+                        state.deferred.resolve();
+
+                    }
+
+                    if (n + state.limit < state.size) {
+                        complete(args[n + state.limit], n + state.limit);
+                    }
+
+                });
+
+                fnDeferred.errback(fail);
+
+            }
+
+            for (x = 0; x < state.limit; x = x + 1) {
+
+                complete(args[x], x);
+
+            }
+
+            return state.deferred.promise();
+
+        }
+
+
+        batch.batch = batch;
+        batch.forEach = forEach;
+        batch.forIn = forIn;
+        batch.forX = forX;
+        batch.map = map;
+        batch.select = select;
+        batch.remove = remove;
+        batch.find = find;
+        batch.all = all;
+        batch.none = none;
+        batch.join = join;
+
+
+        return batch;
 
     });
 
