@@ -100,7 +100,14 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(fn, list[state.offset]));
+                fnDeferred = execute(
+                    helpers.apply(
+                        fn,
+                        list[state.offset],
+                        state.offset,
+                        list
+                    )
+                );
 
                 fnDeferred.callback(function () {
                     state.offset = state.offset + 1;
@@ -148,7 +155,14 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(fn, obj[state.keys[state.offset]]));
+                fnDeferred = execute(
+                    helpers.apply(
+                        fn,
+                        obj[state.keys[state.offset]],
+                        state.keys[state.offset],
+                        obj
+                    )
+                );
 
                 fnDeferred.callback(function () {
                     state.offset = state.offset + 1;
@@ -458,7 +472,13 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(fn, list[state.offset], state.val));
+                fnDeferred = execute(
+                    helpers.apply(
+                        fn,
+                        list[state.offset],
+                        state.val
+                    )
+                );
 
                 fnDeferred.callback(function (val) {
                     state.val = val;

@@ -181,7 +181,14 @@ SOFTWARE.
 
             for (x = 0; x < state.size; x = x + 1) {
 
-                fnDeferred = execute(helpers.apply(fn, list[x]));
+                fnDeferred = execute(
+                    helpers.apply(
+                        fn,
+                        list[x],
+                        x,
+                        list
+                    )
+                );
                 fnDeferred.callback(complete);
                 fnDeferred.errback(fail);
 
@@ -236,7 +243,14 @@ SOFTWARE.
 
             for (x = 0; x < state.size; x = x + 1) {
 
-                fnDeferred = execute(helpers.apply(fn, obj[state.keys[x]]));
+                fnDeferred = execute(
+                    helpers.apply(
+                        fn,
+                        obj[state.keys[x]],
+                        state.keys[x],
+                        obj
+                    )
+                );
                 fnDeferred.callback(complete);
                 fnDeferred.errback(fail);
 
