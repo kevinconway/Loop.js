@@ -4,7 +4,7 @@ Loop.js
 
 **Cross platform async helpers for JavaScript.**
 
-*Status: In Development*
+*Status: Testing*
 
 What Is Loop?
 ===============
@@ -21,29 +21,32 @@ processed concurrently), or batched (up to N items processed concurrently).
 Status
 ======
 
-Loop is still under development. Currently the sequential and fan modules are
-complete and tested. Below are the implemented loops along with which loop
-types they support.
+Below are the implemented loops along with which loop types they support.
+
+Note::
+
+    All batch methods accept an additional parameter to indicate the maximum
+    number of concurrent tasks in a batch.
 
 -   forEach(list, fn)
 
     Perform `fn` for each item in `list`. `fn` is passed the current list value,
     current list offset, and a reference to `list` as arguments.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 -   forIn(obj, fn)
 
     Perform `fn` for each key in obj. `fn` is passed the current object value,
     current key, and a reference to `obj` as parameters.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 -   forX(x, fn)
 
     Perform `fn` `x` times. `fn` is passed the current `x` as a parameter.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 -   untilFalse(test, fn)
 
@@ -75,7 +78,7 @@ types they support.
     return values from `fn`. `fn` is passed the current list value as a
     parameter.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 -   reduce(list, fn, value)
 
@@ -90,34 +93,34 @@ types they support.
     Perform `test` for each item in `list` and generate a new list containing
     only the values from `list` for which `test` returned `true`.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 -   remove(list, test)
 
     Perform `test` for each item in `list` and generate a new list containing
     only the values from `list` for which `test` returned `false`.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 -   find(list, test)
 
     Return the the first value of `list` for which `test` returns a `true`.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 -   all(list, test)
 
     Resolves to `true` when every element of `list` produces `true` when
     given to `test`. Otherwise resolves to `false`.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 -   none(list, test)
 
     Resolves to `true` when every element of `list` produces `false` when
     given to `test`. Otherwise resolves to `false`.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 -   join(list, fn)
 
@@ -126,7 +129,7 @@ types they support.
     all return results from `fn` are joined together in a flat list using
     `Array.prototype.concat`.
 
-    Supports sequential and fan.
+    Supports sequential, fan, and batch.
 
 
 Show Me
