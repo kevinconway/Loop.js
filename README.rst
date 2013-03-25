@@ -208,7 +208,7 @@ cross-platform compatibility.
 
 For convenience and portability, both Mocha and Express are included in this
 repository. For further convenience, browser based test runners have also been
-included for both <script> and AMD loading.
+included.
 
 Contributor's Agreement
 -----------------------
