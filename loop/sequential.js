@@ -37,50 +37,6 @@ SOFTWARE.
 
     def.call(ctx, 'loop/sequential', deps[env], function (defer, Deferred, helpers) {
 
-        function execute(fn) {
-
-            var d, fnDeferred;
-
-            function resolve() {
-
-                try {
-
-                    fnDeferred = fn();
-
-                    if (fnDeferred &&
-                            fnDeferred.callback &&
-                            fnDeferred.errback) {
-
-                        fnDeferred.callback(function (value) {
-                            d.resolve(value);
-                        });
-                        fnDeferred.errback(function (err) {
-                            d.fail(err);
-                        });
-
-                        return;
-
-                    }
-
-                    d.resolve(fnDeferred);
-
-                } catch (e) {
-
-                    d.fail(e);
-                    return;
-
-                }
-
-            }
-
-            d = new Deferred();
-
-            defer(resolve);
-
-            return d.promise();
-
-        }
-
         function forEach(list, fn) {
 
             var state = {
@@ -100,7 +56,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(
+                fnDeferred = helpers.execute(
                     helpers.apply(
                         fn,
                         list[state.offset],
@@ -155,7 +111,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(
+                fnDeferred = helpers.execute(
                     helpers.apply(
                         fn,
                         obj[state.keys[state.offset]],
@@ -200,7 +156,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(fn, state.offset));
+                fnDeferred = helpers.execute(helpers.apply(fn, state.offset));
 
                 fnDeferred.callback(function () {
                     state.offset = state.offset + 1;
@@ -227,7 +183,7 @@ SOFTWARE.
 
                 var testDeferred;
 
-                testDeferred = execute(test);
+                testDeferred = helpers.execute(test);
 
                 testDeferred.callback(function (testResult) {
 
@@ -235,7 +191,7 @@ SOFTWARE.
 
                     if (testResult === true) {
 
-                        fnDeferred = execute(fn);
+                        fnDeferred = helpers.execute(fn);
 
                         fnDeferred.callback(next);
 
@@ -273,13 +229,13 @@ SOFTWARE.
 
                 var fnDeferred;
 
-                fnDeferred = execute(fn);
+                fnDeferred = helpers.execute(fn);
 
                 fnDeferred.callback(function () {
 
                     var testDeferred;
 
-                    testDeferred = execute(test);
+                    testDeferred = helpers.execute(test);
 
                     testDeferred.callback(function (testResult) {
 
@@ -324,7 +280,7 @@ SOFTWARE.
 
                 var testDeferred;
 
-                testDeferred = execute(test);
+                testDeferred = helpers.execute(test);
 
                 testDeferred.callback(function (testResult) {
 
@@ -332,7 +288,7 @@ SOFTWARE.
 
                     if (testResult === false) {
 
-                        fnDeferred = execute(fn);
+                        fnDeferred = helpers.execute(fn);
 
                         fnDeferred.callback(next);
 
@@ -370,13 +326,13 @@ SOFTWARE.
 
                 var fnDeferred;
 
-                fnDeferred = execute(fn);
+                fnDeferred = helpers.execute(fn);
 
                 fnDeferred.callback(function () {
 
                     var testDeferred;
 
-                    testDeferred = execute(test);
+                    testDeferred = helpers.execute(test);
 
                     testDeferred.callback(function (testResult) {
 
@@ -433,7 +389,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(fn, list[state.offset]));
+                fnDeferred = helpers.execute(helpers.apply(fn, list[state.offset]));
 
                 fnDeferred.callback(function (val) {
                     state.list[state.offset] = val;
@@ -472,7 +428,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(
+                fnDeferred = helpers.execute(
                     helpers.apply(
                         fn,
                         list[state.offset],
@@ -517,7 +473,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+                fnDeferred = helpers.execute(helpers.apply(test, list[state.offset]));
 
                 fnDeferred.callback(function (val) {
                     if (val === true) {
@@ -558,7 +514,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+                fnDeferred = helpers.execute(helpers.apply(test, list[state.offset]));
 
                 fnDeferred.callback(function (val) {
                     if (val === false) {
@@ -598,7 +554,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+                fnDeferred = helpers.execute(helpers.apply(test, list[state.offset]));
 
                 fnDeferred.callback(function (val) {
                     if (val === true) {
@@ -640,7 +596,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+                fnDeferred = helpers.execute(helpers.apply(test, list[state.offset]));
 
                 fnDeferred.callback(function (val) {
                     if (val === false) {
@@ -682,7 +638,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(test, list[state.offset]));
+                fnDeferred = helpers.execute(helpers.apply(test, list[state.offset]));
 
                 fnDeferred.callback(function (val) {
                     if (val === true) {
@@ -725,7 +681,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(fn, list[state.offset]));
+                fnDeferred = helpers.execute(helpers.apply(fn, list[state.offset]));
 
                 fnDeferred.callback(function (val) {
                     state.list = state.list.concat(val);
@@ -764,7 +720,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(args[state.offset]);
+                fnDeferred = helpers.execute(args[state.offset]);
 
                 fnDeferred.callback(function () {
                     state.offset = state.offset + 1;
@@ -802,7 +758,7 @@ SOFTWARE.
 
                 }
 
-                fnDeferred = execute(helpers.apply(list[state.offset], value));
+                fnDeferred = helpers.execute(helpers.apply(list[state.offset], value));
 
                 fnDeferred.callback(function (val) {
                     state.offset = state.offset + 1;

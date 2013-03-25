@@ -30,12 +30,12 @@ SOFTWARE.
     var env = factory.env,
         def = factory.def,
         deps = {
-            amd: [],
-            node: [],
-            browser: []
+            amd: ['../node_modules/deferjs/defer.js', '../node_modules/deferredjs/deferred.js'],
+            node: ['deferjs', 'deferredjs'],
+            browser: ['defer', 'Deferred']
         };
 
-    def.call(ctx, 'loop/helpers', deps[env], function () {
+    def.call(ctx, 'loop/helpers', deps[env], function (defer, Deferred) {
 
         /*
             This is a helper function to ease the process of binding
@@ -54,8 +54,53 @@ SOFTWARE.
 
         }
 
+        function execute(fn) {
+
+            var d, fnDeferred;
+
+            function resolve() {
+
+                try {
+
+                    fnDeferred = fn();
+
+                    if (fnDeferred &&
+                            fnDeferred.callback &&
+                            fnDeferred.errback) {
+
+                        fnDeferred.callback(function (value) {
+                            d.resolve(value);
+                        });
+                        fnDeferred.errback(function (err) {
+                            d.fail(err);
+                        });
+
+                        return;
+
+                    }
+
+                    d.resolve(fnDeferred);
+
+                } catch (e) {
+
+                    d.fail(e);
+                    return;
+
+                }
+
+            }
+
+            d = new Deferred();
+
+            defer(resolve);
+
+            return d.promise();
+
+        }
+
         return {
-            "apply": apply
+            "apply": apply,
+            "execute": execute
         };
 
     });

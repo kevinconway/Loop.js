@@ -37,50 +37,6 @@ SOFTWARE.
 
     def.call(ctx, 'loop/fan', deps[env], function (defer, Deferred, helpers) {
 
-        function execute(fn) {
-
-            var d, fnDeferred;
-
-            function resolve() {
-
-                try {
-
-                    fnDeferred = fn();
-
-                    if (fnDeferred &&
-                            fnDeferred.callback &&
-                            fnDeferred.errback) {
-
-                        fnDeferred.callback(function (value) {
-                            d.resolve(value);
-                        });
-                        fnDeferred.errback(function (err) {
-                            d.fail(err);
-                        });
-
-                        return;
-
-                    }
-
-                    d.resolve(fnDeferred);
-
-                } catch (e) {
-
-                    d.fail(e);
-                    return;
-
-                }
-
-            }
-
-            d = new Deferred();
-
-            defer(resolve);
-
-            return d.promise();
-
-        }
-
         function forEach(list, fn) {
 
             var state = {
@@ -116,7 +72,7 @@ SOFTWARE.
 
             for (x = 0; x < state.size; x = x + 1) {
 
-                fnDeferred = execute(
+                fnDeferred = helpers.execute(
                     helpers.apply(
                         fn,
                         list[x],
@@ -178,7 +134,7 @@ SOFTWARE.
 
             for (x = 0; x < state.size; x = x + 1) {
 
-                fnDeferred = execute(
+                fnDeferred = helpers.execute(
                     helpers.apply(
                         fn,
                         obj[state.keys[x]],
@@ -230,7 +186,7 @@ SOFTWARE.
 
             for (y = 0; y < state.size; y = y + 1) {
 
-                fnDeferred = execute(helpers.apply(fn, y));
+                fnDeferred = helpers.execute(helpers.apply(fn, y));
                 fnDeferred.callback(complete);
                 fnDeferred.errback(fail);
 
@@ -263,7 +219,7 @@ SOFTWARE.
 
             function complete(func, x) {
 
-                var testDeferred = execute(func);
+                var testDeferred = helpers.execute(func);
 
                 testDeferred.callback(function (value) {
 
@@ -314,7 +270,7 @@ SOFTWARE.
 
             function complete(test, x) {
 
-                var testDeferred = execute(test);
+                var testDeferred = helpers.execute(test);
 
                 testDeferred.callback(function (testResults) {
                     if (testResults === true) {
@@ -367,7 +323,7 @@ SOFTWARE.
 
             function complete(test, x) {
 
-                var testDeferred = execute(test);
+                var testDeferred = helpers.execute(test);
 
                 testDeferred.callback(function (testResults) {
                     if (testResults === false) {
@@ -419,7 +375,7 @@ SOFTWARE.
 
             function complete(test, x) {
 
-                var testDeferred = execute(test);
+                var testDeferred = helpers.execute(test);
 
                 testDeferred.callback(function (testResults) {
                     if (testResults === true) {
@@ -474,7 +430,7 @@ SOFTWARE.
 
             function complete(test, x) {
 
-                var testDeferred = execute(test);
+                var testDeferred = helpers.execute(test);
 
                 testDeferred.callback(function (testResults) {
                     if (testResults === false) {
@@ -529,7 +485,7 @@ SOFTWARE.
 
             function complete(test, x) {
 
-                var testDeferred = execute(test);
+                var testDeferred = helpers.execute(test);
 
                 testDeferred.callback(function (testResults) {
                     if (testResults === true) {
@@ -599,7 +555,7 @@ SOFTWARE.
 
             for (x = 0; x < state.size; x = x + 1) {
 
-                fnDeferred = execute(helpers.apply(fn, list[x]));
+                fnDeferred = helpers.execute(helpers.apply(fn, list[x]));
                 fnDeferred.callback(complete);
                 fnDeferred.errback(fail);
 
@@ -639,7 +595,7 @@ SOFTWARE.
 
             for (x = 0; x < state.size; x = x + 1) {
 
-                fnDeferred = execute(args[x]);
+                fnDeferred = helpers.execute(args[x]);
                 fnDeferred.callback(complete);
                 fnDeferred.errback(fail);
 
