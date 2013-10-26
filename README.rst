@@ -4,7 +4,9 @@ Loop.js
 
 **Cross platform async helpers for JavaScript.**
 
-*Status: Testing*
+.. image:: https://travis-ci.org/kevinconway/Loop.js.png?branch=master
+    :target: https://travis-ci.org/kevinconway/Loop.js
+    :alt: Current Build Status
 
 What Is Loop?
 ===============
