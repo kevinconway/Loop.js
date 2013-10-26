@@ -2,13 +2,13 @@
   "author": "Kevin Conway <kevinjacobconway@gmail.com> (https://github.com/kevinconway)",
   "name": "loopjs",
   "description": "Cross platform async helpers for JavaScript.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "homepage": "https://github.com/kevinconway/Loop.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/kevinconway/Loop.js.git"
   },
-  "main": "./loop/loop.js",
+  "main": "./loop/index.js",
   "scripts": {
     "test": "mocha"
   },
