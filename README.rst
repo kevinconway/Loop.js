@@ -18,120 +18,6 @@ All loops return a Deferred object that is resolved when the loop is completed.
 Loops can process sequentially (one item then the next), fanned (all items
 processed concurrently), or batched (up to N items processed concurrently).
 
-Status
-======
-
-Below are the implemented loops along with which loop types they support.
-
-Note::
-
-    All batch methods accept an additional parameter to indicate the maximum
-    number of concurrent tasks in a batch.
-
--   forEach(list, fn)
-
-    Perform `fn` for each item in `list`. `fn` is passed the current list value,
-    current list offset, and a reference to `list` as arguments.
-
-    Supports sequential, fan, and batch.
-
--   forIn(obj, fn)
-
-    Perform `fn` for each key in obj. `fn` is passed the current object value,
-    current key, and a reference to `obj` as parameters.
-
-    Supports sequential, fan, and batch.
-
--   forX(x, fn)
-
-    Perform `fn` `x` times. `fn` is passed the current `x` as a parameter.
-
-    Supports sequential, fan, and batch.
-
--   untilFalse(test, fn)
-
-    Perform `fn` until `test` returns `false`.
-
-    Supports sequential.
-
--   doUntilFalse(test, fn)
-
-    Perform `fn` until `test` returns `false`. `fn` is always run at least once.
-
-    Supports sequential.
-
--   untilTrue(test, fn)
-
-    Perform `fn` until `test` returns `true`.
-
-    Supports sequential.
-
--   doUntilTrue(test, fn)
-
-    Perform `fn` until `test` returns `true`. `fn` is always run at least once.
-
-    Supports sequential.
-
--   map(list, fn)
-
-    Perform `fn` on each item in `list` to generate a new list containing the
-    return values from `fn`. `fn` is passed the current list value as a
-    parameter.
-
-    Supports sequential, fan, and batch.
-
--   reduce(list, fn, value)
-
-    Perform `fn` on each item in `list` to produce a single value. `value`
-    represents the initial value state. `value` is repeatedly set to the return
-    of `fn`. `fn` is passed the current list item and `value` as parameters.
-
-    Supports sequential.
-
--   select(list, test)
-
-    Perform `test` for each item in `list` and generate a new list containing
-    only the values from `list` for which `test` returned `true`.
-
-    Supports sequential, fan, and batch.
-
--   remove(list, test)
-
-    Perform `test` for each item in `list` and generate a new list containing
-    only the values from `list` for which `test` returned `false`.
-
-    Supports sequential, fan, and batch.
-
--   find(list, test)
-
-    Return the the first value of `list` for which `test` returns a `true`.
-
-    Supports sequential, fan, and batch.
-
--   all(list, test)
-
-    Resolves to `true` when every element of `list` produces `true` when
-    given to `test`. Otherwise resolves to `false`.
-
-    Supports sequential, fan, and batch.
-
--   none(list, test)
-
-    Resolves to `true` when every element of `list` produces `false` when
-    given to `test`. Otherwise resolves to `false`.
-
-    Supports sequential, fan, and batch.
-
--   join(list, fn)
-
-    Performs `fn` for each item in `list`. Resolves to a single list containing
-    all of the return values from `fn`. This method differs from `map` in that
-    all return results from `fn` are joined together in a flat list using
-    `Array.prototype.concat`.
-
-    Supports sequential, fan, and batch.
-
-
 Show Me
 =======
 
@@ -154,6 +40,83 @@ Show Me
         console.log(newList); // [2, 4, 6, 8, 10]
     });
 
+Currently supported iterations are:
+
+    forEach, forIn, forX, untilFalse, doUntilFalse, untilTrue, doUntilTrue,
+    map, reduce, select, remove, find, all, none, and join
+
+For detailed API and usage documentation for each iterator, as well as for the
+different iteration modes (sequential, fan, and batch), see the doc directory.
+
+Setup Instructions
+==================
+
+This library is designed to operate in multiple JavaScript environments without
+requiring change to the code base. To accomplish this, all modules have been
+wrapped in a specialized module pattern that will detect the current
+environment and choose the most appropriate loading mechanism for dependencies.
+
+Currently support platforms are Node.js, browser via <script>, and AMD via
+RequireJS.
+
+Node.js
+-------
+
+This package is published through NPM under the name `loopjs` and can be
+installed with::
+
+    $ npm install loopjs
+
+This should automatically install all dependencies (deferjs, and deferredjs).
+
+This package can then be loaded with `require('loopjs')`.
+
+Browser (<script>)
+------------------
+
+Developers working with a normal browser environment can use regular script
+tags to load the package. This package has dependencies on these other
+packages:
+
+-   `Modelo <https://github.com/kevinconway/Modelo.js>`_
+
+-   `Defer <https://github.com/kevinconway/Defer.js>`_
+
+-   `Event <https://github.com/kevinconway/Event.js>`_
+
+-   `Deferred <https://github.com/kevinconway/Deferred.js>`_
+
+The load order should be something like this::
+
+    <script src="modelo.js"></script>
+    <script src="defer.js"></script>
+    <script src="event.js"></script>
+    <script src="deferred.js"></script>
+    <script src="loop/helpers.js"></script>
+    <script src="loop/sequential.js"></script>
+    <script src="loop/fan.js"></script>
+    <script src="loop/batch.js"></script>
+
+The packages load into a global variable named `loop` which contains the
+modules in `loop.helpers`, `loop.sequential`, `loop.fan`, and `loop.batch`.
+
+Browser (AMD)
+-------------
+
+Developers working with RequireJS can also load this package with `require()`.
+
+One thing to note, however, is that this package has its own dependencies that
+must also be available through `require()`. Developers with NPM installed can
+make use of the pre-configured dependency options by doing the following::
+
+    $ npm install loopjs
+    # recursively install all dependencies for npm install packages.
+
+Now when you reference `loopjs` as a dependency it should properly load
+its own dependencies.
+
+If you require something more specific then you can edit the dependency options
+for this package by looking at line 33 in each module and editing the paths.
 
 License
 =======
@@ -167,12 +130,12 @@ This project is released and distributed under an MIT License.
 
     Copyright (C) 2013 Kevin Conway
 
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to
-    deal in the Software without restriction, including without limitation the
-    rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-    sell copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
     The above copyright notice and this permission notice shall be included in
     all copies or substantial portions of the Software.
@@ -182,8 +145,8 @@ This project is released and distributed under an MIT License.
     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-    IN THE SOFTWARE.
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
 Contributors
 ============
