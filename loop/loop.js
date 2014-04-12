@@ -49,12 +49,6 @@ SOFTWARE.
 
       }
 
-      // function FALSE() {
-
-      //   return false;
-
-      // }
-
       engine = (function () {
 
         function ensureDeferred(fn) {

@@ -10,9 +10,10 @@
   },
   "main": "./loop/loop.js",
   "scripts": {
-    "test": "mocha"
+    "test": "./test/install_deps && mocha"
   },
   "dependencies": {
+    "modelo": "3.x.x",
     "deferjs": ">=2.1.x <3.0.0",
     "deferredjs": "3.x.x"
     },
