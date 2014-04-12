@@ -4,7 +4,7 @@
 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-    <link rel="stylesheet" href="./lib/style.css" />
+    <link rel="stylesheet" href="./lib/mocha.css" />
 
     <script>
       if(typeof String.prototype.trim !== 'function') {
@@ -14,8 +14,8 @@
       }
     </script>
 
-    <script src="./lib/mocha.js"></script>
     <script src="./lib/expect.js"></script>
+    <script src="./lib/mocha.js"></script>
 
     <script>
       mocha.setup({
@@ -31,21 +31,12 @@
       }
     </script>
 
-    <script src="../node_modules/deferjs/defer/defer.js"></script>
-    <script src="../node_modules/deferredjs/node_modules/modelo/modelo/modelo.js"></script>
-    <script src="../node_modules/deferredjs/node_modules/eventjs/event/event.js"></script>
-    <script src="../node_modules/deferredjs/deferred/deferred.js"></script>
+    <script src="./lib/modelo.js"></script>
+    <script src="./lib/defer.js"></script>
+    <script src="./lib/deferred.js"></script>
+    <script src="./lib/loop.js"></script>
 
-    <script src="../loop/helpers.js"></script>
-    <script src="../loop/sequential.js"></script>
-    <script src="../loop/fan.js"></script>
-    <script src="../loop/batch.js"></script>
-
-
-    <script src="./loop.sequential.spec.js"></script>
-    <script src="./loop.fan.spec.js"></script>
-    <script src="./loop.batch.spec.js"></script>
-
+    <script src="./loop.spec.js"></script>
 
     <script>
      onload = function(){
