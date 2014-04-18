@@ -42,8 +42,9 @@
 
             var d = loop.for.each([], function () { return null; });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -51,39 +52,17 @@
 
             var d = loop.for.each([], function () { return null; });
 
-            d.callback(function () {
-
-              done();
-
-            });
-
-            d.errback(function (err) {
-
-              expect().fail(err);
-              done();
-
-            });
+            d.then(done, function (err) { expect().fail(err); done(); });
 
           });
 
           it('uses list values as input', function (done) {
 
-            var d = loop.for.each(['test'], function (v) {
-              expect(v).to.be('test');
+            var d = loop.for.each([true, false, null], function (v, i, l) {
+              expect(v).to.be(l[i]);
             });
 
-            d.callback(function () {
-
-              done();
-
-            });
-
-            d.errback(function (err) {
-
-              expect().fail(err);
-              done();
-
-            });
+            d.then(done, function (err) { expect().fail(err); done(); });
 
           });
 
@@ -95,8 +74,9 @@
 
             var d = loop.for.in({}, function () { return null; });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -104,41 +84,18 @@
 
             var d = loop.for.in({}, function () { return null; });
 
-            d.callback(function () {
-
-              done();
-
-            });
-
-            d.errback(function (err) {
-
-              expect().fail(err);
-              done();
-
-            });
+            d.then(done, function (err) { expect.fail(err); done(); });
 
           });
 
           it('uses object values as input', function (done) {
 
-            var d = loop.for.in({ "test": true }, function (v, k, o) {
-              expect(v).to.be(true);
-              expect(k).to.be('test');
-              expect(o.test).to.be(true);
-            });
+            var obj = { "test1": true, "test2": false, "test3": null },
+              d = loop.for.in(obj, function (v, k, o) {
+                expect(v).to.be(o[k]);
+              });
 
-            d.callback(function () {
-
-              done();
-
-            });
-
-            d.errback(function (err) {
-
-              expect().fail(err);
-              done();
-
-            });
+            d.then(done, function (err) { expect().fail(err); done(); });
 
           });
 
@@ -150,8 +107,9 @@
 
             var d = loop.for.x(0, function () { return null; });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -159,39 +117,19 @@
 
             var d = loop.for.x(0, function () { return null; });
 
-            d.callback(function () {
-
-              done();
-
-            });
-
-            d.errback(function (err) {
-
-              expect().fail(err);
-              done();
-
-            });
+            d.then(done, function (err) { expect().fail(err); done(); });
 
           });
 
           it('uses iteration numbers as input', function (done) {
 
-            var d = loop.for.x(1, function (v) {
-              expect(v).to.be(0);
-            });
+            var x = 0,
+              d = loop.for.x(10, function (v) {
+                expect(v).to.be(x);
+                x = x + 1;
+              });
 
-            d.callback(function () {
-
-              done();
-
-            });
-
-            d.errback(function (err) {
-
-              expect().fail(err);
-              done();
-
-            });
+            d.then(done, function (err) { expect().fail(err); done(); });
 
           });
 
@@ -207,8 +145,9 @@
                 return null;
               });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -252,15 +191,13 @@
 
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               expect(state.count).to.be(11);
               expect(state.test).to.be(false);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -282,15 +219,13 @@
 
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               expect(state.count).to.be(0);
               expect(state.test).to.be(false);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -312,15 +247,13 @@
 
               }, true);
 
-            d.callback(function () {
+            d.then(function () {
 
               expect(state.count).to.be(1);
               expect(state.test).to.be(false);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -341,8 +274,9 @@
                 return null;
               });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -354,13 +288,11 @@
                 return null;
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -386,15 +318,13 @@
 
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               expect(state.count).to.be(11);
               expect(state.test).to.be(true);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -416,15 +346,13 @@
 
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               expect(state.count).to.be(0);
               expect(state.test).to.be(true);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -446,15 +374,13 @@
 
               }, true);
 
-            d.callback(function () {
+            d.then(function () {
 
               expect(state.count).to.be(1);
               expect(state.test).to.be(true);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -471,8 +397,9 @@
 
             var d = loop.map([], function () { return null; });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -480,13 +407,11 @@
 
             var d = loop.map([], function () { return null; });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -503,13 +428,11 @@
                 return v;
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -520,26 +443,27 @@
 
           it('produces a new list', function (done) {
 
-            var d = loop.map([1, 2, 3, 4, 5],
-              function (v) {
-                return v * 2;
-              });
+            var list = [1, 2, 3, 4, 5, 6],
+              timesTwo = function (v) { return v * 2; },
+              d = loop.map(list, timesTwo);
 
-            d.callback(function (value) {
+            d.then(function (newList) {
 
-              expect(value.length).to.be.ok();
+              var x;
 
-              expect(value[0]).to.be(2);
-              expect(value[1]).to.be(4);
-              expect(value[2]).to.be(6);
-              expect(value[3]).to.be(8);
-              expect(value[4]).to.be(10);
+              expect(newList).to.be.ok();
+              expect(newList.length).to.be.ok();
+              expect(newList.length).to.be(list.length);
+
+              for (x = 0; x < newList.length; x = x + 1) {
+
+                expect(newList[x]).to.be(timesTwo(list[x]));
+
+              }
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -556,8 +480,9 @@
 
             var d = loop.reduce([], function () { return false; }, 0);
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -565,13 +490,11 @@
 
             var d = loop.reduce([], function () { return false; }, 0);
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -589,13 +512,11 @@
               },
               0);
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -606,20 +527,23 @@
 
           it('produces a new value', function (done) {
 
-            var d = loop.reduce([1, 1, 2, 3],
-              function (item, val) {
-                return val + item;
-              },
-              0);
+            var list = [1, 1, 2, 3, 5, 8],
+              sum = function (left, right) { return left + right; },
+              d = loop.reduce(list, sum, 0);
 
-            d.callback(function (value) {
+            d.then(function (value) {
 
-              expect(value).to.be(7);
+              var x, testValue = 0;
+              for (x = 0; x < list.length; x = x + 1) {
+
+                testValue = sum(testValue, list[x]);
+
+              }
+
+              expect(value).to.be(testValue);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -636,8 +560,9 @@
 
             var d = loop.select([], function () { return false; });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -645,13 +570,11 @@
 
             var d = loop.select([], function () { return false; });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -668,13 +591,11 @@
                 return true;
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -685,20 +606,17 @@
 
           it('produces a new list', function (done) {
 
-            var d = loop.select([1, 1, 2, 3],
-              function (item) {
-                return item === 2;
-              });
+            var list = [1, 1, 2, 3, 5, 8],
+              test = function (v) { return v === 2; },
+              d = loop.select(list, test);
 
-            d.callback(function (value) {
+            d.then(function (newList) {
 
-              expect(value.length).to.be(1);
-              expect(value[0]).to.be(2);
+              expect(newList.length).to.be(1);
+              expect(newList[0]).to.be(2);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -715,8 +633,9 @@
 
             var d = loop.remove([], function () { return false; });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -724,13 +643,11 @@
 
             var d = loop.remove([], function () { return false; });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -747,13 +664,11 @@
                 return false;
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -764,20 +679,17 @@
 
           it('produces a new list', function (done) {
 
-            var d = loop.remove([1, 1, 2, 3],
-              function (item) {
-                return item !== 2;
-              });
+            var list = [1, 1, 2, 3, 5, 8],
+              test = function (v) { return v !== 2; },
+              d = loop.remove(list, test);
 
-            d.callback(function (value) {
+            d.then(function (newList) {
 
-              expect(value.length).to.be(1);
-              expect(value[0]).to.be(2);
+              expect(newList.length).to.be(1);
+              expect(newList[0]).to.be(2);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -794,8 +706,9 @@
 
             var d = loop.all([], function () { return false; });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -803,13 +716,11 @@
 
             var d = loop.all([], function () { return false; });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -823,16 +734,14 @@
             var d = loop.all([2, 2, 2, 2],
               function (item) {
                 expect(item).to.be(2);
-                return false;
+                return true;
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -848,14 +757,12 @@
                 return item < 4;
               });
 
-            d.callback(function (value) {
+            d.then(function (value) {
 
               expect(value).to.be(true);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -871,14 +778,12 @@
                 return item < 2;
               });
 
-            d.callback(function (value) {
+            d.then(function (value) {
 
               expect(value).to.be(false);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -895,8 +800,9 @@
 
             var d = loop.none([], function () { return false; });
 
-            expect(d.callback).to.be.ok();
-            expect(d.errback).to.be.ok();
+            expect(d).to.be.ok();
+            expect(d.then).to.be.ok();
+            expect(typeof d.then).to.be('function');
 
           });
 
@@ -904,13 +810,11 @@
 
             var d = loop.none([], function () { return false; });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -927,13 +831,11 @@
                 return false;
               });
 
-            d.callback(function () {
+            d.then(function () {
 
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -949,14 +851,12 @@
                 return item > 4;
               });
 
-            d.callback(function (value) {
+            d.then(function (value) {
 
               expect(value).to.be(true);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
@@ -972,14 +872,12 @@
                 return item > 2;
               });
 
-            d.callback(function (value) {
+            d.then(function (value) {
 
               expect(value).to.be(false);
               done();
 
-            });
-
-            d.errback(function (err) {
+            }, function (err) {
 
               expect().fail(err);
               done();
