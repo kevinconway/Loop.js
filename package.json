@@ -2,7 +2,7 @@
   "author": "Kevin Conway <kevinjacobconway@gmail.com> (https://github.com/kevinconway)",
   "name": "loopjs",
   "description": "Cross platform async helpers for JavaScript.",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "homepage": "https://github.com/kevinconway/Loop.js",
   "repository": {
     "type": "git",
@@ -13,9 +13,8 @@
     "test": "./test/install_deps && mocha"
   },
   "dependencies": {
-    "modelo": "3.x.x",
     "deferjs": ">=2.1.x <3.0.0",
-    "deferredjs": "3.x.x"
+    "deferredjs": ">=4.1.x <5.0.0"
     },
   "devDependencies": {},
   "optionalDependencies": {},

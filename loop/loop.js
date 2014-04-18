@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/*jslint node: true, indent: 2, passfail: true */
+/*jslint node: true, indent: 2, passfail: true, continue: true */
 
 (function (context, generator) {
   "use strict";
@@ -29,196 +29,78 @@ SOFTWARE.
   generator.call(
     context,
     'loopjs',
-    ['deferjs', 'modelo', 'deferredjs'],
-    function (defer, Modelo, Deferred) {
+    ['deferjs', 'deferredjs'],
+    function (defer, Deferred) {
 
-      var engine,
-        pkg = {},
-        State = Modelo.define(function (options) {
+      var pkg = {};
 
-          this.deferred = new Deferred();
-          this.offset = options.offset || 0;
-          this.size = options.size || 0;
-          this.limit = options.limit || 1;
+      pkg.for = (function () {
 
-        });
+        function forX(x, fn, limit) {
 
-      function TRUE() {
+          var d = new Deferred(),
+            y = 0,
+            promises = [],
+            collection,
+            length = x;
+          limit = limit || 1;
 
-        return true;
+          if (length < 1) {
 
-      }
-
-      engine = (function () {
-
-        function ensureDeferred(fn) {
-
-          var value,
-            args = Array.prototype.slice.call(arguments, 1),
-            d = new Deferred();
-
-          try {
-
-            value = fn.apply(null, args);
-
-            if (!!value && !!value.callback && !!value.errback) {
-
-              return value;
-
-            }
-
-            d.resolve(value);
-
-          } catch (e) {
-
-            d.fail(e);
+            return d.resolve().promise();
 
           }
+
+          if (limit > length) {
+
+            limit = length;
+
+          }
+
+          for (y = 0; y < limit; y = y + 1) {
+
+            promises.push(
+              Deferred.convert(fn)(y)
+            );
+
+          }
+
+          for (y = limit; y < length; y = y + 1) {
+
+            promises[y % limit] = promises[y % limit].then(
+              Deferred.convert(defer.bind(fn, null, y)),
+              defer.bind(d.fail, d)
+            );
+
+          }
+
+          collection = Deferred.Collection.All.apply(null, promises);
+          collection.then(function () {
+
+            d.resolve();
+
+          }, defer.bind(d.reject, d));
 
           return d.promise();
 
         }
 
-        function iter(
-          state,
-          precondition,
-          action,
-          handle,
-          postcondition,
-          complete
-        ) {
-
-          if (precondition() !== true) {
-
-            complete();
-            return null;
-
-          }
-
-          var fnDeferred = ensureDeferred(action);
-          fnDeferred.callback(function (value) {
-
-            var next = handle(value);
-
-            if (postcondition() !== true) {
-
-              complete();
-              return null;
-
-            }
-
-            next();
-
-          });
-          fnDeferred.errback(defer.bind(state.deferred.fail, state.deferred));
-
-        }
-
-        function generateIter(
-          state,
-          precondition,
-          action,
-          handle,
-          postcondition,
-          complete
-        ) {
-
-
-          return defer.bind(
-            iter,
-            null,
-            state,
-            precondition,
-            action,
-            handle,
-            postcondition,
-            complete
-          );
-
-        }
-
-        return {
-          "ensureDeferred": ensureDeferred,
-          "iter": iter,
-          "generateIter": generateIter,
-        };
-
-      }());
-
-      pkg.engine = engine;
-
-      pkg.for = (function () {
-
-        function loopComplete(state) {
-
-          return state.offset < state.size;
-
-        }
-
-        function next(state, action, handle, counter, increment) {
-
-          if (increment !== false) {
-
-            state.offset = state.offset + 1;
-
-          }
-
-          return engine.generateIter(
-            state,
-            defer.bind(loopComplete, null, state),
-            action,
-            defer.bind(handle, null, counter + state.limit),
-            defer.bind(loopComplete, null, state),
-            defer.bind(state.deferred.resolve, state.deferred)
-          );
-
-        }
-
         function forEach(list, fn, limit) {
 
-          var state = new State({"size": list.length, "limit": limit}),
-            x;
+          function forEachHandler(x) {
 
-          function handle(counter) {
-
-            return next(
-              state,
-              defer.bind(
-                fn,
-                null,
-                list[counter + state.limit],
-                counter + state.limit,
-                list
-              ),
-              defer.bind(handle, null, counter + state.limit),
-              counter
-            );
+            return Deferred.convert(fn)(list[x], x, list);
 
           }
 
-          for (x = 0; x < state.limit; x = x + 1) {
-
-            next(
-              state,
-              defer.bind(fn, null, list[x], x, list),
-              defer.bind(handle, null, x),
-              x,
-              false
-            )();
-
-          }
-          state.offset = x - 1;
-
-          return state.deferred.promise();
+          return forX(list.length, forEachHandler, limit);
 
         }
 
         function forIn(obj, fn, limit) {
 
-          var state = new State({"limit": limit}),
-            keys = [],
-            key,
-            x;
+          var keys = [],
+            key;
 
           for (key in obj) {
 
@@ -230,77 +112,13 @@ SOFTWARE.
 
           }
 
-          state.size = keys.length;
+          function forInHandler(k) {
 
-          function handle(counter) {
-
-            return next(
-              state,
-              defer.bind(
-                fn,
-                null,
-                obj[keys[counter + state.limit]],
-                keys[counter + state.limit],
-                obj
-              ),
-              defer.bind(handle, null, counter + state.limit),
-              counter
-            );
+            return Deferred.convert(fn)(obj[k], k, obj);
 
           }
 
-          for (x = 0; x < state.limit; x = x + 1) {
-
-            next(
-              state,
-              defer.bind(fn, null, obj[keys[x]], keys[x], obj),
-              defer.bind(handle, null, x),
-              x,
-              false
-            )();
-
-          }
-          state.offset = x - 1;
-
-          return state.deferred.promise();
-
-        }
-
-        function forX(x, fn, limit) {
-
-          var state = new State({"size": x, "limit": limit}),
-            y;
-
-          function handle(counter) {
-
-            return next(
-              state,
-              defer.bind(
-                fn,
-                null,
-                counter + state.limit
-              ),
-              defer.bind(handle, null, counter + state.limit),
-              counter
-            );
-
-          }
-
-          for (y = 0; y < state.limit; y = y + 1) {
-
-
-            next(
-              state,
-              defer.bind(fn, null, y),
-              defer.bind(handle, null, y),
-              y,
-              false
-            )();
-
-          }
-          state.offset = x - 1;
-
-          return state.deferred.promise();
+          return forEach(keys, forInHandler, limit);
 
         }
 
@@ -314,81 +132,76 @@ SOFTWARE.
 
       pkg.until = (function () {
 
-        function untilFalse(test, fn, doUntil) {
+        function untilCheck(testFn, testVal) {
 
-          var state = new State();
+          return Deferred.convert(testFn)().then(function (val) {
+
+            return val === testVal;
+
+          });
+
+        }
+
+        function untilBlock(fn, testFn, testVal, doUntil) {
+
           doUntil = !!doUntil || false;
 
-          function handle() {
+          if (doUntil === false) {
 
-            if (doUntil === true) {
+            return untilCheck(testFn, testVal).then(function (result) {
 
-              return engine.generateIter(
-                state,
-                TRUE,
-                fn,
-                handle,
-                test,
-                defer.bind(state.deferred.resolve, state.deferred)
-              );
+              if (result === false) {
 
-            }
+                return Deferred.convert(fn)().then(
+                  defer.bind(untilCheck, null, testFn, testVal)
+                );
 
-            return engine.generateIter(
-              state,
-              test,
-              fn,
-              handle,
-              TRUE,
-              defer.bind(state.deferred.resolve, state.deferred)
-            );
+              }
+
+              return true;
+
+            });
 
           }
 
-          handle()();
+          return Deferred.convert(fn)().then(
+            defer.bind(untilCheck, null, testFn, testVal)
+          );
 
-          return state.deferred.promise();
+        }
+
+        function untilLoop(fn, testFn, testVal, doUntil, d) {
+
+          d = d || new Deferred();
+
+          untilBlock(fn, testFn, testVal, doUntil).then(
+            function (stop) {
+
+              if (stop === true) {
+
+                d.resolve();
+                return null;
+
+              }
+
+              return untilLoop(fn, testFn, testVal, doUntil, d);
+
+            }
+          );
+
+          return d.promise();
+
+        }
+
+        function untilFalse(test, fn, doUntil) {
+
+          return untilLoop(fn, test, false, doUntil);
 
         }
 
         function untilTrue(test, fn, doUntil) {
 
-          var state = new State();
-          doUntil = !!doUntil || false;
-
-          function handle() {
-
-            if (doUntil === true) {
-
-              return engine.generateIter(
-                state,
-                TRUE,
-                fn,
-                handle,
-                function () {
-                  return !test();
-                },
-                defer.bind(state.deferred.resolve, state.deferred)
-              );
-
-            }
-
-            return engine.generateIter(
-              state,
-              function () {
-                return !test();
-              },
-              fn,
-              handle,
-              TRUE,
-              defer.bind(state.deferred.resolve, state.deferred)
-            );
-
-          }
-
-          handle()();
-
-          return state.deferred.promise();
+          return untilLoop(fn, test, true, doUntil);
 
         }
 
@@ -401,102 +214,47 @@ SOFTWARE.
 
       pkg.map = function map(list, fn, limit) {
 
-        var result = [],
-          d = new Deferred(),
-          loopD;
+        var result = [];
 
-        loopD = pkg.for.each(list, function (item, idx) {
+        function mapHandler(item, idx) {
 
-          var fnD = new Deferred(),
-            value;
+          return Deferred.convert(fn)(item).then(
+            function (value) {
+              result[idx] = value;
+            }
+          );
 
-          value = pkg.engine.ensureDeferred(defer.bind(fn, null, item));
-          value.callback(function (value) {
+        }
 
-            result[idx] = value;
-            fnD.resolve();
-
-          });
-          value.errback(function (reason) {
-
-            fnD.fail(reason);
-
-          });
-
-          return fnD.promise();
-
-        }, limit || 1);
-
-        loopD.callback(function () {
-
-          d.resolve(result);
-
-        });
-
-        loopD.errback(function (reason) {
-
-          d.fail(reason);
-
-        });
-
-        return d.promise();
+        return pkg.for.each(list, mapHandler, limit).then(
+          function () { return result; }
+        );
 
       };
 
       pkg.reduce = function reduce(list, fn, value) {
 
-        var container = {"value": value},
-          d = new Deferred(),
-          loopD;
+        var container = {"value": value};
 
-        loopD = pkg.for.each(list, function (item) {
+        function reduceHandler(item) {
 
-          var fnD = new Deferred(),
-            newValue;
-
-          newValue = pkg.engine.ensureDeferred(
-            defer.bind(fn, null, item, container.value)
+          return Deferred.convert(fn)(item, container.value).then(
+            function (newValue) { container.value = newValue; }
           );
-          newValue.callback(function (v) {
 
-            container.value = v;
-            fnD.resolve(v);
+        }
 
-          });
-          newValue.errback(function (reason) {
-
-            fnD.fail(reason);
-
-          });
-
-          return fnD.promise();
-
-        });
-
-        loopD.callback(function () {
-
-          d.resolve(container.value);
-
-        });
-
-        loopD.errback(function (reason) {
-
-          d.fail(reason);
-
-        });
-
-        return d.promise();
+        return pkg.for.each(list, reduceHandler).then(
+          function () { return container.value; }
+        );
 
       };
 
       pkg.select = function select(list, test) {
 
-        var result = [],
-          d = new Deferred(),
-          loopD;
+        var result = [];
 
-        loopD = pkg.map(list, test);
-        loopD.callback(function (testList) {
+        function selectHandler(testList) {
 
           var x;
           for (x = 0; x < testList.length; x = x + 1) {
@@ -509,28 +267,19 @@ SOFTWARE.
 
           }
 
-          d.resolve(result);
+          return result;
 
-        });
+        }
 
-        loopD.errback(function (reason) {
-
-          d.fail(reason);
-
-        });
-
-        return d.promise();
+        return pkg.map(list, test).then(selectHandler);
 
       };
 
       pkg.remove = function remove(list, test) {
 
-        var result = [],
-          d = new Deferred(),
-          loopD;
+        var result = [];
 
-        loopD = pkg.map(list, test);
-        loopD.callback(function (testList) {
+        function selectHandler(testList) {
 
           var x;
           for (x = 0; x < testList.length; x = x + 1) {
@@ -543,61 +292,35 @@ SOFTWARE.
 
           }
 
-          d.resolve(result);
+          return result;
 
-        });
+        }
 
-        loopD.errback(function (reason) {
-
-          d.fail(reason);
-
-        });
-
-        return d.promise();
+        return pkg.map(list, test).then(selectHandler);
 
       };
 
       pkg.all = function all(list, test) {
 
-        var d = new Deferred(),
-          loopD;
+        function allHandler(newList) {
 
-        loopD = pkg.remove(list, test);
-        loopD.callback(function (newList) {
+          return newList.length === 0;
 
-          d.resolve(newList.length === 0);
+        }
 
-        });
-
-        loopD.errback(function (reason) {
-
-          d.fail(reason);
-
-        });
-
-        return d.promise();
+        return pkg.remove(list, test).then(allHandler);
 
       };
 
       pkg.none = function none(list, test) {
 
-        var d = new Deferred(),
-          loopD;
+        function allHandler(newList) {
 
-        loopD = pkg.select(list, test);
-        loopD.callback(function (newList) {
+          return newList.length === 0;
 
-          d.resolve(newList.length === 0);
+        }
 
-        });
-
-        loopD.errback(function (reason) {
-
-          d.fail(reason);
-
-        });
-
-        return d.promise();
+        return pkg.select(list, test).then(allHandler);
 
       };
 
