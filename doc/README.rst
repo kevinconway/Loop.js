@@ -7,11 +7,10 @@ Loop.js
 Description
 ===========
 
-The Loop.js package contains iterators which process which help when attempting
-to apply async functions across a list of values.
+The Loop.js package contains iterators which help when attempting to apply
+async functions across a list of values.
 
-Every iterator returns a deferred rather than accepting a callback.
-
+Every iterator returns a promise rather than accepting a callback.
 
 Usage Examples
 ==============
@@ -19,18 +18,20 @@ Usage Examples
 Simple Example
 --------------
 
-A simple, if not degenerate, example of an iterator using for.each::
+A simple, if not degenerate, example of an iterator using for.each:
+
+.. code-block:: javascript
 
     var list = [0, 1, 2, 3, 4, 5],
         fn = function (item) {
             console.log(item);
         },
-        d;
+        p;
 
     // Perform `fn` for each item in `list`.
-    d = loopjs.for.each(list, fn);
+    p = loopjs.for.each(list, fn);
 
-    d.callback(function () {
+    p.then(function () {
         console.log("Done.");
     })
 
@@ -44,43 +45,39 @@ A simple, if not degenerate, example of an iterator using for.each::
 
 In the above example, our function used by the iteration is a simple,
 synchronous function that logs the input to the console. In this case the
-iteration is simply a wrapper around a simple for loop. One detail to note is
-that the iterator returns a deferred. This deferred can have callbacks and
-errbacks attached that will trigger once the iteration is complete. The
-deferred implementation used is the Defer.js module.
+iteration is simply a wrapper around a for loop. One detail to note is
+that the iterator returns a promise, or thenable.
 
 Another important detail to note is that this form of looping, when the
 function being executed is a sequential function, is necessarily slower than
 if a normal for loop was used. The real utility of this library is in applying
-it with async functions that return deferreds.
+it with async functions that return promises.
 
 Async Example
 -------------
 
 All iterator functions accept some function that is applied at each step in the
-iterations. If these user supplied functions return a deferred then the
-iterator will wait for that deferred to resolve before continuing on to the
-next iteration::
+iterations. If these user supplied functions return a promise then the
+iterator will wait for that promise to resolve before continuing on to the
+next iteration. The example here will use the Deferred.js implementation of
+promises. However, any A+ compliant promise will work.
+
+.. code-block:: javascript
 
     var list = [0, 1, 2, 3, 4, 5],
         asyncFn = function (item) {
             var deferred = new Deferred();
 
-            defer(function() {
+            setImmediate(function () {
                 console.log(item);
                 deferred.resolve()
             });
 
             return deferred.promise();
-        },
-        d;
+        };
 
     // Perform `fn` for each item in `list`.
-    d = forEach(list, fn);
-
-    d.callback(function () {
-        console.log("Done.");
-    })
+    loopjs.for.each(list, fn).then( function () { console.log("Done."); });
 
     // Console Output: 0
     // Console Output: 1
@@ -91,12 +88,94 @@ next iteration::
     // Console Output: Done.
 
 Again, this example is a gross simplification but it illustrates the iterators'
-integration with deferred objects. The async logging function return a promise
+integration with promises. The "async" logging function return a promise
 that is not resolved until some time in the indefinite future. Once that
 promise is resolved the iterator is free to move on to the next iteration.
 
-This provides developers with a platform for integrating complex or
-long-running behaviour into a different forms of iteration.
+Batching
+--------
+
+Each of the loops that mimic `for` loop functionality have the option of
+processing multiple items concurrently. To batch a `for` iterator simply pass
+in the concurrency level as the third parameter:
+
+.. code-block:: javascript
+
+    var list = [0, 1, 2, 3, 4, 5, 6, 7],
+        fn = function (item) {
+            var deferred = new Deferred();
+
+            setTimeout(function () {
+                console.log(item);
+                deferred.resolve();
+            }, Math.random() * 1000);
+
+            return deferred.promise();
+        };
+
+    loopjs.for.each(list, fn, 4).then( function () { console.log("Done."); });
+
+    // Console Output: 2
+    // Console Output: 0
+    // Console Output: 3
+    // Console Output: 1
+    // Console Output: 7
+    // Console Output: 5
+    // Console Output: 4
+    // Console Output: 6
+    // Console Output: Done.
+
+In this example the loop only ever has four unresolved promises at any given
+time. As a promise resolves, it moves on to the next item in the list. Batching
+in this way is useful any time the async function being run uses some form of
+network connection for which you want to control or configure the concurrency.
+
+Until Loops
+-----------
+
+While different kinds of `for` loops are useful they are by no means the only
+kind of looping that can be done. This package also provides the equivalent of
+`while` and `do-while` loops:
+
+.. code-block:: javascript
+
+    function checkIfReady() {
+
+        return asyncGetResourceStatus().then(function (status) {
+            return status === 'ready';
+        });
+
+    }
+
+    loopjs.until.true(checkIfReady, console.log.bind(null, 'Waiting...')).then(
+        console.log.bind(null, 'Resource is ready.')
+    );
+
+    // Console Output: Waiting...
+    // Console Output: Waiting...
+    // Console Output: Waiting...
+    // ...
+    // Console Output: Resource is ready.
+
+This example is a little dense so let's wade through it.
+
+First we have our async test function which returns a promise. The idea behind
+the `asyncGetResourceStatus` method is that we have some resource in another
+service that we can poll the status of. We get that status and compare it
+against a known, good status (ready). If the status is not ready our promise
+resolves to `false`. Once it is ready our promise resolves to `true`. This will
+be used as the condition for our `while` loop.
+
+Next we run the `until.true` loop. This loop will continuously run the
+`checkIfReady` test to determine when to stop. At each iteration where
+`checkIfReady` resolves to false the loop will run the given function
+(console.log in this case). Once the test returns `true` the loop promise
+resolves.
+
+These types of loops are most useful for polling external resources until some
+condition is met and then performing some action. This package contains an
+`until.true` and `until.false` loop. To simulate a `do-while` loop simply pass
+`true` in as an optional third parameter.
 
 API Reference
 =============
