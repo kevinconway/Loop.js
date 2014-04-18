@@ -9,13 +9,11 @@ Loop.js
     :alt: Current Build Status
 
 What Is Loop?
-===============
+=============
 
-Loop is a utility designed to help developers make better use of
-the JavaScript concurrency model. Loop provides a set of functions that
-replace synchronous looping with asynchronous looping.
-
-All loops return a Deferred object that is resolved when the loop is completed.
+Loop is a utility designed to make it easier to run async functions in a loop.
+All loops return an A+ compliant promise that is resolved when the loop is
+completed.
 
 Show Me
 =======
@@ -23,14 +21,15 @@ Show Me
 .. code-block:: javascript
 
     var list = [1, 2, 3, 4, 5],
-        fn = function (value) {
+        asyncDouble = function (value) {
+            // Any A+ compliant promise will work.
+            var promise = new SomePromiseImplementation();
+            // Do something async and resolve the promise with a value.
+            setImmediate(promise.resolve.bind(promise, value * 2));
+            return promise;
+        };
 
-            return value * 2;
-        },
-        d;
-
-    d = loopjs.map(list, fn);
-    d.callback(function (newList) {
+    loopjs.map(list, fn).then(function (newList) {
         console.log(newList); // [2, 4, 6, 8, 10]
     });
 
@@ -39,8 +38,7 @@ Currently supported iterations are:
     for.each, for.in, for.x, until.false, until.false, map, reduce, select,
     remove, find, all, and none.
 
-For detailed API and usage documentation for each iterator see the doc
-directory.
+For more use cases, examples, and API documentation see the 'doc' directory.
 
 Setup
 =====
@@ -52,7 +50,7 @@ This package is published through NPM under the name `loopjs`::
 
     $ npm install loopjs
 
-Once installed, simply `loopjs = require("loopjs")`.
+Once installed, `loopjs = require("loopjs")`.
 
 Browser
 -------
@@ -61,15 +59,12 @@ Developers working with a normal browser environment can use regular script
 tags to load the package. This package has dependencies on these other
 packages:
 
--   `Modelo <https://github.com/kevinconway/Modelo.js>`_
-
 -   `Defer <https://github.com/kevinconway/Defer.js>`_
 
 -   `Deferred <https://github.com/kevinconway/Deferred.js>`_
 
 The load order should be something like this::
 
-    <script src="modelo.js"></script>
     <script src="defer.js"></script>
     <script src="deferred.js"></script>
     <script src="loop.js"></script>
