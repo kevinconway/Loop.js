@@ -2,7 +2,7 @@
 Loop.js
 =======
 
-**Cross platform async helpers for JavaScript.**
+**Cross platform async helpers.**
 
 .. image:: https://travis-ci.org/kevinconway/Loop.js.png?branch=master
     :target: https://travis-ci.org/kevinconway/Loop.js
@@ -29,13 +29,13 @@ Show Me
             return promise;
         };
 
-    loopjs.map(list, fn).then(function (newList) {
+    loopjs.map(list, asyncDouble).then(function (newList) {
         console.log(newList); // [2, 4, 6, 8, 10]
     });
 
 Currently supported iterations are:
 
-    for.each, for.in, for.x, until.false, until.false, map, reduce, select,
+    for.each, for.in, for.x, until.true, until.false, map, reduce, select,
     remove, find, all, and none.
 
 For more use cases, examples, and API documentation see the 'doc' directory.
@@ -55,29 +55,20 @@ Once installed, `loopjs = require("loopjs")`.
 Browser
 -------
 
-Developers working with a normal browser environment can use regular script
-tags to load the package. This package has dependencies on these other
-packages:
+This module uses browserify to create a browser compatible module. The default
+grunt workflow for this project will generate both a full and minified browser
+script in a build directory which can be included as a <script> tag::
 
--   `Defer <https://github.com/kevinconway/Defer.js>`_
+    <script src="loop.browser.min.js"></script>
 
--   `Deferred <https://github.com/kevinconway/Deferred.js>`_
-
-The load order should be something like this::
-
-    <script src="defer.js"></script>
-    <script src="deferred.js"></script>
-    <script src="loop.js"></script>
-
-The package loads into a global variable named `loopjs`.
+The package is exposed via the global name `loopjs`.
 
 Tests
 -----
 
-To run the tests in Node.js use the `npm test` command.
-
-To run the tests in a browser, run the `install_libs` script in the test
-directory and then open the `runner.html` in the browser of your choice.
+Running the `npm test` command will kick off the default grunt workflow. This
+will lint using jslint, run the mocha/expect tests, generate a browser module,
+and test the browser module using PhantomJS.
 
 License
 =======
