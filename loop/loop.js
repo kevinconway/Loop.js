@@ -26,9 +26,18 @@ SOFTWARE.
 module.exports = (function () {
   "use strict";
 
-  var Deferred = require('deferredjs'),
+  var Deferred = require('deferredjs').Deferred,
+    All = require('deferredjs').collection.All,
+    when = require('deferredjs').when,
     defer = require('deferjs'),
     pkg = {};
+
+  // Convert a function to return a promise.
+  function convert(fn) {
+
+    return when(fn());
+
+  }
 
   pkg.for = (function () {
 
@@ -56,7 +65,7 @@ module.exports = (function () {
       for (y = 0; y < limit; y = y + 1) {
 
         promises.push(
-          Deferred.convert(fn)(y)
+          when(fn(y))
         );
 
       }
@@ -64,13 +73,13 @@ module.exports = (function () {
       for (y = limit; y < length; y = y + 1) {
 
         promises[y % limit] = promises[y % limit].then(
-          Deferred.convert(defer.bind(fn, null, y)),
-          defer.bind(d.fail, d)
+          defer.bind(convert, undefined, defer.bind(fn, null, y)),
+          defer.bind(d.reject, d)
         );
 
       }
 
-      collection = Deferred.Collection.All.apply(null, promises);
+      collection = All.apply(null, promises);
       collection.then(function () {
 
         d.resolve();
@@ -85,7 +94,7 @@ module.exports = (function () {
 
       function forEachHandler(x) {
 
-        return Deferred.convert(fn)(list[x], x, list);
+        return when(fn(list[x], x, list));
 
       }
 
@@ -110,7 +119,7 @@ module.exports = (function () {
 
       function forInHandler(k) {
 
-        return Deferred.convert(fn)(obj[k], k, obj);
+        return when(fn(obj[k], k, obj));
 
       }
 
@@ -130,7 +139,7 @@ module.exports = (function () {
 
     function untilCheck(testFn, testVal) {
 
-      return Deferred.convert(testFn)().then(function (val) {
+      return when(testFn()).then(function (val) {
 
         return val === testVal;
 
@@ -148,7 +157,7 @@ module.exports = (function () {
 
           if (result === false) {
 
-            return Deferred.convert(fn)().then(
+            return when(fn()).then(
               defer.bind(untilCheck, null, testFn, testVal)
             );
 
@@ -160,7 +169,7 @@ module.exports = (function () {
 
       }
 
-      return Deferred.convert(fn)().then(
+      return when(fn()).then(
         defer.bind(untilCheck, null, testFn, testVal)
       );
 
@@ -214,7 +223,7 @@ module.exports = (function () {
 
     function mapHandler(item, idx) {
 
-      return Deferred.convert(fn)(item).then(
+      return when(fn(item)).then(
         function (value) {
           result[idx] = value;
         }
@@ -234,7 +243,7 @@ module.exports = (function () {
 
     function reduceHandler(item) {
 
-      return Deferred.convert(fn)(item, container.value).then(
+      return when(fn(item, container.value)).then(
         function (newValue) { container.value = newValue; }
       );
 
