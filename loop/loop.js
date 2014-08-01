@@ -52,7 +52,8 @@ module.exports = (function () {
 
       if (length < 1) {
 
-        return d.resolve().promise();
+        d.resolve();
+        return d.promise();
 
       }
 
