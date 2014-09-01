@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "deferjs": "3.x.x",
-    "deferredjs": "7.x.x"
+    "deferredjs": ">=7.1.2, <8.x.x"
     },
   "devDependencies": {
     "expect.js": "^0.3.1",
